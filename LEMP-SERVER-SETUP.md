@@ -360,7 +360,7 @@ Test if the root password is working:
 mysql -u root -p
 ```
 
-Now we can safely run the security script:
+Now we can safely run the security script (Enable unix_socket instead of using root password, Disallow root login remotely):
 
 ```
 sudo mysql_secure_installation
