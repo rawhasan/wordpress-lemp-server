@@ -1,4 +1,3 @@
-```markdown
 # 🛠️ WordPress Backup Restoration Script
 
 This script restores a WordPress site from a timestamped backup file pulled from a remote server. It restores both the database and `wp-content` directory, and supports modern backup naming conventions.
@@ -80,4 +79,4 @@ Once successful, you will see:
 - SSH access to the old server is required.
 - This script assumes WordPress is located at:  
   `/sites/<domain>/public`
-```
+
