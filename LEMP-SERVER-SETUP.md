@@ -418,7 +418,7 @@ cd ~/
 Create the required directories and set the correct permissions:
 
 ```
-mkdir -p /sites/EXAMPLE.COM/public /sites/EXAMPLE.COM/logs /sites/EXAMPLE.COM/backups /sites/EXAMPLE.COM/shells
+sudo mkdir -p /sites/EXAMPLE.COM/public /sites/EXAMPLE.COM/logs /sites/EXAMPLE.COM/backups /sites/EXAMPLE.COM/shells
 chmod -R 755 EXAMPLE.COM
 ```
 
