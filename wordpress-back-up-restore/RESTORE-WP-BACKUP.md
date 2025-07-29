@@ -1,12 +1,12 @@
-# 🛠️ WordPress Backup Restoration Script
+# ♻️ WordPress Restore Script
 
-This script restores a WordPress site from a timestamped backup file pulled from a remote server. It restores both the database and `wp-content` directory, and supports modern backup naming conventions.
+This script restores a WordPress site from a timestamped backup archive — either pulled from a remote server or already present on the local server.
 
 ---
 
-## 📂 Backup File Structure
+## 📦 Backup Archive Structure
 
-The script expects the backup archive to follow this format:
+The script expects a backup archive in the following format:
 
 ```
 example.com-wp-YYYY-MM-DD_HHMM.tar.gz
@@ -18,65 +18,65 @@ example.com-wp-YYYY-MM-DD_HHMM.tar.gz
 
 ## ▶️ How to Use
 
-1. **Upload the script** to your new server and make it executable:
+1. Make the script executable:
 
    ```bash
    chmod +x restore-wp-backup.sh
    ```
 
-2. **Run the script**:
+2. Run the script:
 
    ```bash
    ./restore-wp-backup.sh
    ```
 
-3. **Follow the prompts**:
+3. Choose backup source when prompted:
 
+   - `1`: Pull from old server using SCP
+   - `2`: Use local backup file already uploaded to this server
+
+4. Provide the required input:
    - Domain name (e.g., `example.com`)
-   - Old server IP address
-   - SSH username on the old server
-   - Backup filename (e.g., `example.com-wp-20250719_1830.tar.gz`)
-   - If `wp-config.php` is missing, it will also ask for DB credentials
+   - If pulling: old server IP and SSH username
+   - If local: path to `.tar.gz` backup
+   - If `wp-config.php` not found: manual DB credentials
 
 ---
 
-## 🔧 What the Script Does
+## 🔧 What It Does
 
-1. Prompts for the domain and backup information.
-2. Creates necessary directories under `/sites/<domain>/`.
-3. Pulls the specified backup archive from the old server via `scp`.
-4. Extracts the backup archive into the `migrate` folder.
-5. Reads DB credentials from `wp-config.php` or prompts for them.
-6. Restores the database from the extracted `.sql` file.
-7. Extracts and replaces the `wp-content` directory.
-8. Cleans up all temporary files.
+- Creates target directories under `/sites/<domain>/`
+- Extracts the `.tar.gz` archive into a `migrate` directory
+- Reads DB credentials from `wp-config.php` or prompts for them
+- Restores the database from the extracted SQL file
+- Extracts and replaces the `wp-content` directory
+- Cleans up all temporary files after success
 
 ---
 
 ## 🧹 Cleanup Performed
 
-After restoration, the script removes:
-- The downloaded `.tar.gz` backup
-- The extracted `.sql` file
-- The extracted `wp-content-*.tar.gz`
-- The temporary `wp-content/` directory in `migrate`
+After restoration, it deletes:
+- The pulled or local backup archive
+- The SQL file
+- The extracted wp-content archive
+- Temporary directories inside `/sites/<domain>/migrate`
 
 ---
 
-## ✅ Completion
+## ✅ Sample Output
 
-Once successful, you will see:
-
-```
-✅ Restoration completed successfully for <domain>
+```bash
+📦 Pulling backup from old server...
+📂 Extracting backup...
+🔍 Extracting database credentials from wp-config.php...
+🗄️ Restoring database...
+📂 Extracting wp-content archive...
+♻️ Replacing wp-content directory...
+🧹 Cleaning up temporary files...
+✅ Restoration completed successfully for example.com
 ```
 
 ---
 
-## ⚠️ Notes
-
-- Ensure the MySQL user has permissions to restore the database.
-- SSH access to the old server is required.
-- This script assumes WordPress is located at:  
-  `/sites/<domain>/public`
-
+Created to safely restore WordPress sites using domain-based, timestamped backups.
