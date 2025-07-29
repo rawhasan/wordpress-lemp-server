@@ -325,6 +325,10 @@ sudo apt install mariadb-server
 ```
 
 ```
+mariadb --version
+```
+
+```
 sudo systemctl start mariadb
 sudo systemctl enable mariadb
 
