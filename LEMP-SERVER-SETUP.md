@@ -407,43 +407,45 @@ sudo certbot renew --dry-run
 ```
 
 
+### Add an Nginx Configuration for the Site
 
+Navigate to your home directory.
+
+```
+cd ~/ 
+```
+
+Create the required directories and set the correct permissions:
+
+```
+mkdir -p /sites/EXAMPLE.COM/public /sites/EXAMPLE.COM/logs /sites/EXAMPLE.COM/backups /sites/EXAMPLE.COM/shells
+chmod -R 755 EXAMPLE.COM
+```
+
+Create the server block in Nginx:
+
+```
+cd /etc/nginx/sites-available
 ```
 
 ```
+sudo cp single-site-with-caching.com EXAMPLE.COM
+```
 
+Replace **EXAMPLE.COM** with the **Domain Name** in the file and Save with **CTRL-X** and **Y**.
 
+To enable the newly created site, symlink the file that you just created into the `sites-enabled` directory, using the same filename:
+
+```
+sudo ln -s /etc/nginx/sites-available/EXAMPLE.COM /etc/nginx/sites-enabled/EXAMPLE.COM
 ```
 
 ```
-
-
-
+sudo nginx -t
 ```
 
 ```
-
-
-```
-
-```
-
-
-
-```
-
-```
-
-
-
-
-```
-
-```
-
-
-```
-
+sudo service nginx reload
 ```
 
 
