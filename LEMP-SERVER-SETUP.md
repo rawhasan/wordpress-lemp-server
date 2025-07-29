@@ -345,7 +345,7 @@ sudo mysql
 Next, run the following command to change the root user’s authentication method to the secure caching_sha2_password method and set a password:
 
 ```
-ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'password';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourNewPassword';
 ```
 
 And then exit the MySQL prompt:
