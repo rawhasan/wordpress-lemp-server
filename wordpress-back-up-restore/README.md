@@ -1,98 +1,47 @@
-# WordPress Site Backup & Restore Script Guide
+```markdown
+# 🧰 WordPress Backup & Restore Toolkit
 
-This guide explains how to use the `wp-backup.sh` and `restore-wp-backup.sh` scripts to create a backup of the WordPress site's `wp-content` directory and MySQL database in the old server, and restore the back-up in a new server for site migration.
-
-## 🔧 Prerequisites
-
-- A Unix-based server (Ubuntu, Debian, etc.)
-- Bash shell installed
-- `tar` and `mysqldump` installed
-- The script placed in an executable path (e.g., `/usr/local/bin/wp-backup.sh`)
-- Correct configuration inside the script
+This toolkit provides two Bash scripts to **safely back up and restore** a WordPress site — including both the MySQL database and the `wp-content` directory — using timestamped, domain-based file naming.
 
 ---
 
-## 📁 Script Location and Setup
+## 📦 Backup Script
 
-1. **Place the script** in the following directory:
-   ```bash
-   /sites/example.com/shells/wp-backup.sh
-   ```
+Creates a compressed `.tar.gz` archive containing:
+- A SQL dump of the database
+- A tarball of the `wp-content` folder
 
-2. **Open the script** in an editor and configure the following variables:
-
-   ```bash
-   SITE_NAME="example.com"
-   WP_PATH="/sites/example.com/public"
-   BACKUP_DIR="/sites/example.com/backups"
-   DB_HOST="localhost"
-   ```
-
-   Replace these with the actual values for your site.
-
----
-
-## 🚀 How to Run
-
-To run the script:
-
-```bash
-bash wp-backup.sh
-```
-
-You will be prompted to enter:
-
-- MySQL database name
-- MySQL username
-- MySQL password (hidden input)
-
----
-
-## 📦 What It Does
-
-1. Creates a temporary backup directory under `/tmp/`
-2. Archives the `wp-content` folder into `wp-content.tar.gz`
-3. Dumps the MySQL database into `db.sql`
-4. Combines both into a single compressed file:
-   ```
-   /sites/example.com/backups/example.com-wp-YYYY-MM-DD.tar.gz
-   ```
-5. Deletes the temporary directory
-
----
-
-## ✅ Backup Output
-
-After completion, you’ll see a message like:
+All credentials are securely extracted from `wp-config.php`. Output files are saved to `/sites/<domain>/backups/` using the format:
 
 ```
-✅ Backup created: /sites/example.com/backups/example.com-wp-2025-07-19.tar.gz
+example.com-wp-YYYY-MM-DD_HHMM.tar.gz
+├── example.com-db-YYYY-MM-DD_HHMM.sql
+└── example.com-wp-content-YYYY-MM-DD_HHMM.tar.gz
 ```
 
-This archive contains:
-- `wp-content.tar.gz`
-- `db.sql`
+---
 
-You can use this to restore your site manually if needed.
+## ♻️ Restore Script
+
+Restores a WordPress site by:
+- Pulling the backup from a remote server via `scp`
+- Extracting and importing the SQL database
+- Replacing the `wp-content` directory
+- Cleaning up temporary files
+
+If `wp-config.php` is unavailable, it prompts for DB credentials manually.
 
 ---
 
-## 🔐 Security Tips
+## ✅ Benefits
 
-- Restrict access to the script: `chmod 700 wp-backup.sh`
-- Secure the backup directory with proper permissions
-- Consider automating it with `cron` and a `.my.cnf` file (if passwordless)
+- Zero hardcoded credentials
+- Timestamped, human-readable filenames
+- Works across servers
+- Simple, auditable Bash scripts
+- Compatible with any LEMP stack using `/sites/<domain>/public` structure
 
 ---
 
-## 📅 Automation (Optional)
-
-You can schedule regular backups using `cron`:
-
-```bash
-0 2 * * * /usr/local/bin/wp-backup.sh <<< $'your_db_name\nyour_db_user\nyour_db_pass'
+Created for safe, portable, and efficient WordPress migrations and disaster recovery.
 ```
-
-Or rewrite the script to read credentials from a secure config file.
-
----
