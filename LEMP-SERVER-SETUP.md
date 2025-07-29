@@ -1,6 +1,6 @@
 # LEMP Server Setup
 
-## Set Up and Secure a VPS
+## 1. Set Up and Secure a VPS
 
 ### Set the Timezone
 ```
