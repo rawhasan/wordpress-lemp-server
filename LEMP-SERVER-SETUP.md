@@ -82,3 +82,96 @@ Save the file using **CTRL + X** and then **Y**.  Then restart the service to ha
 ```
 service unattended-upgrades restart
 ```
+
+
+### Create a New User
+
+First, create the new user:
+
+```
+adduser USERNAME
+```
+
+Next, add the new user to the `sudo` group:
+
+```
+usermod -a -G sudo abe
+```
+
+Now ensure your new account is working by logging out of your current SSH session and initiating a new one:
+
+```
+logout
+```
+
+Then login with the new account:
+
+```
+ssh USERNAME@SERVER_IP
+```
+
+
+```
+
+```
+
+
+```
+
+```
+
+
+```
+
+```
+
+
+
+```
+
+```
+
+
+
+```
+
+```
+
+
+
+```
+
+```
+
+
+```
+
+```
+
+
+```
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
