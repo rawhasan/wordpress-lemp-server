@@ -2,13 +2,16 @@
 
 set -euo pipefail
 
-# Prompt for input
+# Prompt for domain name
 read -p "Enter domain name (example.com): " DOMAIN
-read -p "Enter old server IP address: " OLD_SERVER_IP
-read -p "Enter SSH username on old server: " OLD_SERVER_USER
-read -p "Enter backup filename (e.g. example.com-wp-20250719_1830.tar.gz): " BACKUP_FILENAME
 
-# Define paths
+# Ask for backup source
+echo "Select backup source:"
+echo "1) Pull from old server via SCP"
+echo "2) Use a local backup file already on this server"
+read -p "Enter option [1 or 2]: " SOURCE_OPTION
+
+# Set common paths
 DEST_DIR="/sites/$DOMAIN"
 MIGRATE_DIR="$DEST_DIR/migrate"
 PUBLIC_DIR="$DEST_DIR/public"
@@ -16,13 +19,28 @@ WPCONFIG="$PUBLIC_DIR/wp-config.php"
 
 mkdir -p "$MIGRATE_DIR" "$PUBLIC_DIR"
 
-echo "📦 Pulling backup from old server..."
-scp "${OLD_SERVER_USER}@${OLD_SERVER_IP}:/sites/${DOMAIN}/backups/${BACKUP_FILENAME}" "$MIGRATE_DIR/"
+# Get backup file
+if [[ "$SOURCE_OPTION" == "1" ]]; then
+  read -p "Enter old server IP address: " OLD_SERVER_IP
+  read -p "Enter SSH username on old server: " OLD_SERVER_USER
+  read -p "Enter backup filename (e.g. example.com-wp-20250719_1830.tar.gz): " BACKUP_FILENAME
+  echo "📦 Pulling backup from old server..."
+  scp "${OLD_SERVER_USER}@${OLD_SERVER_IP}:/sites/${DOMAIN}/backups/${BACKUP_FILENAME}" "$MIGRATE_DIR/"
+elif [[ "$SOURCE_OPTION" == "2" ]]; then
+  read -p "Enter full path to local backup file: " LOCAL_BACKUP_PATH
+  BACKUP_FILENAME=$(basename "$LOCAL_BACKUP_PATH")
+  cp "$LOCAL_BACKUP_PATH" "$MIGRATE_DIR/"
+  echo "📦 Using local backup: $BACKUP_FILENAME"
+else
+  echo "❌ Invalid option. Exiting."
+  exit 1
+fi
 
+# Extract backup
 echo "📂 Extracting backup..."
 tar -xzf "$MIGRATE_DIR/$BACKUP_FILENAME" -C "$MIGRATE_DIR"
 
-# Get DB credentials from wp-config.php if it exists
+# Get DB credentials
 if [[ -f "$WPCONFIG" ]]; then
   echo "🔍 Extracting database credentials from wp-config.php..."
   DB_NAME=$(grep DB_NAME "$WPCONFIG" | cut -d \' -f 4)
@@ -60,7 +78,7 @@ else
   exit 1
 fi
 
-# Clean up pulled and extracted files
+# Cleanup
 echo "🧹 Cleaning up temporary files..."
 rm -f "$MIGRATE_DIR/$BACKUP_FILENAME"
 [ -f "$SQL_FILE" ] && rm -f "$SQL_FILE"
