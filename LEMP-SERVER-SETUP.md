@@ -354,6 +354,12 @@ And then exit the MySQL prompt:
 exit
 ```
 
+Test if the root password is working:
+
+```
+mysql -u root -p
+```
+
 Now we can safely run the security script:
 
 ```
