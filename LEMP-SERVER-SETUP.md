@@ -318,7 +318,6 @@ You can now access the WP-CLI tool by typing `wp`.
 
 ```
 sudo apt update
-
 ```
 
 ```
