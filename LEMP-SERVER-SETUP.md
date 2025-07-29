@@ -459,8 +459,13 @@ sudo service nginx reload
 ```
 
 
-```
 
+### Upload the Site Backup
+
+In the local terminal:
+
+```
+rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-directory --progress
 ```
 
 
