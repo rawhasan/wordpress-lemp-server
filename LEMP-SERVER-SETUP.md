@@ -63,13 +63,22 @@ Unattended-Upgrade::Automatic-Reboot-Time "02:00";
 
 Save the file using **CTRL + X** and then **Y**.
 
+Finally, set how often the automatic updates should run:
+
 ```
 nano /etc/apt/apt.conf.d/20auto-upgrades
 ```
 
+Ensure that `Unattended-Upgrade` is in the list.
+
 ```
 APT::Periodic::Unattended-Upgrade "1";
 ```
+
+The number indicates how often the upgrades will be performed in days. A value of 1 will run upgrades every day.
+
+Save the file using **CTRL + X** and then **Y**.  Then restart the service to have the changes take effect:
+
 ```
 service unattended-upgrades restart
 ```
