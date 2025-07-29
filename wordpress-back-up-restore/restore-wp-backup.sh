@@ -6,7 +6,7 @@ set -euo pipefail
 read -p "Enter domain name (example.com): " DOMAIN
 read -p "Enter old server IP address: " OLD_SERVER_IP
 read -p "Enter SSH username on old server: " OLD_SERVER_USER
-read -p "Enter backup filename (e.g. example-com-20250719.tar.gz): " BACKUP_FILENAME
+read -p "Enter backup filename (e.g. example.com-wp-20250719_1830.tar.gz): " BACKUP_FILENAME
 
 # Define paths
 DEST_DIR="/sites/$DOMAIN"
@@ -37,17 +37,17 @@ else
 fi
 
 # Restore database
-SQL_FILE=$(find "$MIGRATE_DIR" -name "*.sql" | head -n 1)
+SQL_FILE=$(find "$MIGRATE_DIR" -name "*-db-*.sql" | head -n 1)
 if [[ -f "$SQL_FILE" ]]; then
   echo "🗄️ Restoring database from $SQL_FILE..."
   mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$SQL_FILE"
 else
-  echo "❌ No SQL file found in $MIGRATE_DIR"
+  echo "❌ No SQL file matching '*-db-*.sql' found in $MIGRATE_DIR"
   exit 1
 fi
 
 # Restore wp-content
-WPCONTENT_ARCHIVE=$(find "$MIGRATE_DIR" -name "wp-content.tar.gz" | head -n 1)
+WPCONTENT_ARCHIVE=$(find "$MIGRATE_DIR" -name "*-wp-content-*.tar.gz" | head -n 1)
 if [[ -f "$WPCONTENT_ARCHIVE" ]]; then
   echo "📂 Extracting wp-content archive..."
   tar -xzf "$WPCONTENT_ARCHIVE" -C "$MIGRATE_DIR"
@@ -56,7 +56,7 @@ if [[ -f "$WPCONTENT_ARCHIVE" ]]; then
   rm -rf "$PUBLIC_DIR/wp-content"
   mv "$MIGRATE_DIR/wp-content" "$PUBLIC_DIR/"
 else
-  echo "❌ wp-content.tar.gz not found in $MIGRATE_DIR"
+  echo "❌ wp-content archive matching '*-wp-content-*.tar.gz' not found in $MIGRATE_DIR"
   exit 1
 fi
 
