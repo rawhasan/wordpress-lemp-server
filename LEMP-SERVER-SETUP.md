@@ -110,42 +110,65 @@ Then login with the new account:
 ssh USERNAME@SERVER_IP
 ```
 
+### Configure Uncomplicated Firewall
+
+Install Uncomplicated Firewall:
 
 ```
-
+sudo apt install ufw
 ```
 
+Now you can begin adding to the default rules, which deny all incoming traffic and allow all outgoing traffic. For now, add the ports for SSH (22), HTTP (80), and HTTPS (443):
 
 ```
-
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
 ```
 
+To review which rules will be added to the firewall, enter the following command:
 
 ```
-
+sudo ufw show added
 ```
 
-
-
-```
+It will show:
 
 ```
-
-
-
+Added user rules (see 'ufw status' for running firewall):
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
 ```
 
-```
-
-
+Before enabling the firewall rules, ensure that the port for SSH is in the list of added rules – otherwise, you won’t be able to connect to your server! The default port is 22. If everything looks correct, go ahead and enable the configuration:
 
 ```
-
+sudo ufw enable
 ```
 
+To confirm that the new rules are active, enter the following command:
 
 ```
+sudo ufw status verbose
+```
 
+You will see that all inbound traffic is denied by default except on ports 22, 80, and 443 for both IPv4 and IPv6, which is a good starting point for most servers.
+
+```
+abe@pluto.turnipjuice.media:~$ sudo ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere                  
+80/tcp                     ALLOW IN    Anywhere                  
+443/tcp                    ALLOW IN    Anywhere                  
+22/tcp (v6)                ALLOW IN    Anywhere (v6)             
+80/tcp (v6)                ALLOW IN    Anywhere (v6)             
+443/tcp (v6)               ALLOW IN    Anywhere (v6)             
 ```
 
 
