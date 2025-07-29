@@ -209,7 +209,6 @@ sudo apt dist-upgrade -y
 
 ```
 sudo apt install nginx -y
-
 ```
 
 ```
