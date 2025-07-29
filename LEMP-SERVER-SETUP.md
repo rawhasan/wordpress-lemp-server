@@ -251,18 +251,29 @@ sudo service nginx start
 
 Visit the domain name pointing to the server’s IP address in your browser again. It should show **This site can’t be reached**.
 
+
+
+
+
+### Install PHP 8.3
+Just as with Nginx, the official Ubuntu package repository does contain PHP packages. However, they are not the most up-to-date. Again, I use one maintained by **Ondřej Surý** for installing PHP. Add the repository and update the package lists as you did for Nginx:
+
+```
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
 ```
 
 ```
-
+sudo apt install php8.3-fpm php8.3-common php8.3-mysql \
+php8.3-xml php8.3-intl php8.3-curl php8.3-gd \
+php8.3-imagick php8.3-cli php8.3-dev php8.3-imap \
+php8.3-mbstring php8.3-opcache php8.3-redis \
+php8.3-soap php8.3-zip -y
 
 ```
 
 ```
-
-
-```
-
+php-fpm8.3 -v
 ```
 
 
