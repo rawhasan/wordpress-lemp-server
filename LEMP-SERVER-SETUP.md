@@ -216,37 +216,37 @@ nginx -v
 ```
 Now you can try visiting the domain name pointing to your server’s IP address in your browser and you should see an Nginx welcome page. Make sure to type in `http://` as browsers default to `https://` now and that won’t work as we have yet to set up SSL.
 
+
+### Copy the Nginx Kit (Enhanced)
+
+Back up the current Nginx configuration:
+
+```
+ls -ld n*
+sudo mv /etc/nginx /etc/nginx.backup
+```
+
+Clone the Nginx-kit-enhanced repository:
+
+```
+cd /etc
+sudo git clone https://github.com/rawhasan/wordpress-nginx-kit-enhanced.git
 ```
 
 ```
-
-
+ls -ld w*
+sudo mv wordpress-nginx-kit-enhanced nginx
 ```
 
 ```
-
-
-
+sudo nginx -t
+sudo service nginx restart
 ```
 
-```
-
-
-```
+If it’s not already running, you can start Nginx with:
 
 ```
-
-
-
-```
-
-```
-
-
-
-
-```
-
+sudo service nginx start
 ```
 
 
