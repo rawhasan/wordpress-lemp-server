@@ -277,31 +277,39 @@ php-fpm8.3 -v
 ```
 
 
-```
+
+### Install WP-CLI
+
+Navigate to your home directory:
 
 ```
-
-
+cd ~/
 ```
 
-```
-
-
+Using cURL, download WP-CLI:
 
 ```
-
-```
-
-
-```
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 
 ```
 
-
-
-```
+You can then check that it works by issuing:
 
 ```
+php wp-cli.phar --info
+```
+
+The command should output information about your current PHP version and a few other details.
+
+To access the command-line tool by simply typing `wp`, you need to move it into your server’s `PATH` and ensure that it has execute permissions:
+
+```
+chmod +x wp-cli.phar
+sudo mv wp-cli.phar /usr/local/bin/wp
+```
+
+You can now access the WP-CLI tool by typing `wp`.
+
 
 
 ```
