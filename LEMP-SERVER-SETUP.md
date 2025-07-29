@@ -95,7 +95,7 @@ adduser USERNAME
 Next, add the new user to the `sudo` group:
 
 ```
-usermod -a -G sudo abe
+usermod -a -G sudo USERNAME
 ```
 
 Now ensure your new account is working by logging out of your current SSH session and initiating a new one:
