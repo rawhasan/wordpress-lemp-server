@@ -334,6 +334,28 @@ sudo systemctl enable mariadb
 
 ```
 
+You can secure MySQL once it’s installed. Luckily, there’s a built-in script that will prompt you to change a few insecure defaults. However, you’ll first need to change the root user’s authentication method, because by default on Ubuntu installations the root user is not configured to connect using a password. Without the change, it will cause the script to fail and lead to a recursive loop which you can only get out of by closing your terminal window.
+
+First, open the MySQL prompt:
+
+```
+sudo mysql
+```
+
+Next, run the following command to change the root user’s authentication method to the secure caching_sha2_password method and set a password:
+
+```
+ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY 'password';
+```
+
+And then exit the MySQL prompt:
+
+```
+exit
+```
+
+Now we can safely run the security script:
+
 ```
 sudo mysql_secure_installation
 ```
