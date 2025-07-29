@@ -1,4 +1,3 @@
-```markdown
 # 🧰 WordPress Backup & Restore Toolkit
 
 This toolkit provides two Bash scripts to **safely back up and restore** a WordPress site — including both the MySQL database and the `wp-content` directory — using timestamped, domain-based file naming.
@@ -44,4 +43,4 @@ If `wp-config.php` is unavailable, it prompts for DB credentials manually.
 ---
 
 Created for safe, portable, and efficient WordPress migrations and disaster recovery.
-```
+
