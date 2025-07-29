@@ -439,7 +439,7 @@ sudo nano EXAMPLE.COM
 Replace **EXAMPLE.COM** with the **Domain Name** in the file and set **PHP-Pool**:
 
 ```
-fastcgi_pass   php83
+fastcgi_pass   php83;
 ```
 
 Save with **CTRL-X** and **Y**
