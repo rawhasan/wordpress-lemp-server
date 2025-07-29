@@ -249,6 +249,7 @@ If it’s not already running, you can start Nginx with:
 sudo service nginx start
 ```
 
+Visit the domain name pointing to the server’s IP address in your browser again. It should show **This site can’t be reached**.
 
 ```
 
