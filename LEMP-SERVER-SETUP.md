@@ -436,7 +436,11 @@ sudo cp single-site-with-caching.com EXAMPLE.COM
 sudo nano EXAMPLE.COM
 ```
 
-Replace **EXAMPLE.COM** with the **Domain Name** in the file and Save with **CTRL-X** and **Y**.
+Replace **EXAMPLE.COM** with the **Domain Name** in the file, set **PHP-Pool** and Save with **CTRL-X** and **Y**.
+
+```
+fastcgi_pass   php83
+```
 
 To enable the newly created site, symlink the file that you just created into the `sites-enabled` directory, using the same filename:
 
