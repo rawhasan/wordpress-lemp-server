@@ -56,11 +56,13 @@ Unattended-Upgrade::Allowed-Origins {
 };
 ```
 
+```
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "02:00";
+```
+
 Save the file using **CTRL + X** and then **Y**.
 
-```
-Unattended-Upgrade::Automatic-Reboot "false";
-```
 ```
 nano /etc/apt/apt.conf.d/20auto-upgrades
 ```
