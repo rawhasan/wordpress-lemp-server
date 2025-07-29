@@ -214,7 +214,7 @@ sudo apt install nginx -y
 ```
 nginx -v
 ```
-Now you can try visiting the domain name pointing to your server’s IP address in your browser and you should see an Nginx welcome page. Make sure to type in http:// as browsers default to https:// now and that won’t work as we have yet to set up SSL.
+Now you can try visiting the domain name pointing to your server’s IP address in your browser and you should see an Nginx welcome page. Make sure to type in `http://` as browsers default to `https://` now and that won’t work as we have yet to set up SSL.
 
 ```
 
