@@ -333,7 +333,6 @@ sudo systemctl enable mariadb
 
 ```
 sudo mysql_secure_installation
-
 ```
 
 
