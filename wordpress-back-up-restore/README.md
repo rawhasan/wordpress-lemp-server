@@ -1,3 +1,4 @@
+```markdown
 # 🧰 WordPress Backup & Restore Toolkit
 
 This toolkit provides two Bash scripts to **safely back up and restore** a WordPress site — including both the MySQL database and the `wp-content` directory — using timestamped, domain-based file naming.
@@ -23,7 +24,8 @@ example.com-wp-YYYY-MM-DD_HHMM.tar.gz
 ## ♻️ Restore Script
 
 Restores a WordPress site by:
-- Pulling the backup from a remote server via `scp`
+- **Option 1**: Pulling the backup archive from a remote server via `scp`
+- **Option 2**: Using a local backup archive already on the same server
 - Extracting and importing the SQL database
 - Replacing the `wp-content` directory
 - Cleaning up temporary files
@@ -36,11 +38,11 @@ If `wp-config.php` is unavailable, it prompts for DB credentials manually.
 
 - Zero hardcoded credentials
 - Timestamped, human-readable filenames
-- Works across servers
+- Works across servers or from local backups
 - Simple, auditable Bash scripts
 - Compatible with any LEMP stack using `/sites/<domain>/public` structure
 
 ---
 
 Created for safe, portable, and efficient WordPress migrations and disaster recovery.
-
+```
