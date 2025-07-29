@@ -373,7 +373,7 @@ sudo mysql_secure_installation
 
 ### Point DNS from Namecheap to the server IP
 
-### Obtain an SSL Certificate
+### Install Certbot
 
 Now let’s install Certbot, the free, open source tool for managing Let’s Encrypt certificates:
 
@@ -383,6 +383,8 @@ sudo add-apt-repository universe
 sudo apt update
 sudo apt install certbot python3-certbot-nginx
 ```
+
+### Obtain an SSL Certificate
 
 To obtain a certificate, you can now use the Nginx Certbot plugin, by issuing the following command. The certificate can cover multiple domains (100 maximum) by appending additional `d` flags.
 
