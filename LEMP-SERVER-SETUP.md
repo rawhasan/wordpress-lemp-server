@@ -312,25 +312,27 @@ You can now access the WP-CLI tool by typing `wp`.
 
 
 
-```
+
+
+### Install MariaDB
 
 ```
-
-
-
-```
-
-```
-
-
-
+sudo apt update
 
 ```
 
 ```
-
+sudo apt install mariadb-server
+```
 
 ```
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+
+```
+
+```
+sudo mysql_secure_installation
 
 ```
 
