@@ -6,3 +6,39 @@
 ```
 dpkg-reconfigure tzdata
 ```
+
+### Install Software Updates
+```
+apt update
+apt dist-upgrade
+```
+
+```
+apt autoremove
+reboot now
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
