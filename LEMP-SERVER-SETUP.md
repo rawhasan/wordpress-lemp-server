@@ -387,15 +387,15 @@ sudo apt install certbot python3-certbot-nginx
 To obtain a certificate, you can now use the Nginx Certbot plugin, by issuing the following command. The certificate can cover multiple domains (100 maximum) by appending additional `d` flags.
 
 ```
-sudo certbot --nginx certonly -d globex.turnipjuice.media -d www.globex.turnipjuice.media
+sudo certbot --nginx certonly -d EXAMPLE.COM -d www.EXAMPLE.COM
 ```
 
 After entering your email address and agreeing to the terms and conditions, the Certbot client will generate the requested certificate. Make a note of where the certificate file `fullchain.pem` and key file `privkey.pem` are created, as you will need them later.
 
 ```
 Successfully received certificate.
-Certificate is saved at: /etc/letsencrypt/live/globex.turnipjuice.media/fullchain.pem
-Key is saved at:         /etc/letsencrypt/live/globex.turnipjuice.media/privkey.pem
+Certificate is saved at: /etc/letsencrypt/live/EXAMPLE.COM/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/EXAMPLE.COM/privkey.pem
 ```
 
 Certbot will handle renewing all your certificates automatically, but you can test automatic renewals with the following command:
