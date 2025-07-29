@@ -33,7 +33,7 @@ Choose `Yes` and hit **Enter**.
 nano /etc/apt/apt.conf.d/50unattended-upgrades
 ```
 
-Ensure that the security origin is allowed and that all others are removed or commented out. It should look like this (no change needed by default):
+Ensure that the security origin is allowed and that all others are removed or commented out. It should look like this (**no change needed by default**):
 
 ```
 // Automatically upgrade packages from these (origin:archive) pairs
