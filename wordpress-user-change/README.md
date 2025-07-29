@@ -1,5 +1,7 @@
 # WordPress PHP-FPM User Switch Scripts
 
+**Causion:** Script successfully changes and revert user. But changing user causes different ussues to maintain the server.
+
 ## 1. Steps to Change the Ownership
 
 ✅ **Run WordPress as `SERVER-USER` for `EXAMPLE.COM`**
