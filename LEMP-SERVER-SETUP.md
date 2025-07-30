@@ -189,12 +189,13 @@ And to check that it’s running, run the `status` command:
 ```
 sudo service fail2ban status
 ```
+```
 
 
 
 
 
-
+```
 ## 2. Install Nginx, PHP 8.3, WP-CLI, and MariaDB
 
 ### Install Nginx
@@ -366,9 +367,13 @@ Now we can safely run the security script (**Keep oassword login for root, Disal
 sudo mysql_secure_installation
 ```
 
+```
 
 
 
+
+
+```
 ## 3. Configure Nginx to Serve WordPress Over HTTPS
 
 ### Point DNS from Namecheap to the server IP
@@ -544,10 +549,13 @@ sudo chown -R SERVER-USER:SERVER-USER /sites/EXAMPLE.COM/shells
 ### Update the WordPress directory permissions
 
 **TO-DO**
+```
 
 
 
 
+
+```
 ## 4. Configure Redis Object Cache
 
 An object cache stores database query results so that instead of running the query again the next time the results are needed, the results are served from the cache. This greatly improves the performance of WordPress as there is no longer a need to query the database for every piece of data required to return a response.
@@ -583,10 +591,13 @@ Click the **Enable Object Cache** button.
 
 This is also the screen where you can flush the cache if required.
 
+```
 
 
 
 
+
+```
 ## 5. WordPress Cron
 Cron should be configured using the operating system daemon (background process), available on Linux and all Unix-based systems. Because cron runs as a daemon it will run based on the server’s system time and no longer requires a user to visit the WordPress site.
 
