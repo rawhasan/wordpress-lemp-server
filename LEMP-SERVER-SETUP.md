@@ -534,8 +534,11 @@ rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-di
 
 Copy the restore script from **Github** and run it.
 
-```
+Grannt directory ownership to WordPress:
 
+```
+sudo chown -R www-data:www-data /sites/EXAMPLE.COM
+sudo chown -R SERVER-USER:SERVER-USER /sites/EXAMPLE.COM/shells
 ```
 
 
