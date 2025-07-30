@@ -493,7 +493,7 @@ FLUSH PRIVILEGES;
 exit;
 ```
 
-Test the database:
+Test the database (Should show only one database):
 
 ```
 mariadb -u user-name -p
