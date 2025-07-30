@@ -608,7 +608,7 @@ crontab -e
 Adding the following to the end of the file will trigger WordPress cron every 5 minutes. Remember to update the file path to point to your WordPress installation and to repeat the entry for each site.
 
 ```
-*/5 * * * * cd /home/abe/EXAMPLE.COM/public; /usr/local/bin/wp cron event run --due-now >/dev/null 2>&1
+*/5 * * * * cd /sites/EXAMPLE.COM/public; /usr/local/bin/wp cron event run --due-now >/dev/null 2>&1
 ```
 
 The >/dev/null 2>&1 part ensures that no emails are sent to the Unix user account initiating the WordPress cron job scheduler.
