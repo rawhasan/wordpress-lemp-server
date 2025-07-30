@@ -502,29 +502,28 @@ exit
 ```
 
 
-```
-
-```
 
 
-
-```
-
-```
-
-
-
+### Install WordPress
 
 
 ```
-
-```
-
-
+cd /sites/EXAMPLE.COM/public
 ```
 
 ```
+wp core download
+```
 
+```
+wp core config --dbname=database-name --dbuser=user-name --dbpass='password'
+```
+
+```
+wp core install --skip-email --url=https://EXAMPLE.COM --title='Site Title' --admin_user=wordpress-user-name --admin_email=email@email.com --admin_password='password'
+```
+
+You should now be able to visit the domain name in your browser and be presented with a default WordPress installation.
 
 ```
 
