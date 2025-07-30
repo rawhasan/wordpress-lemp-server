@@ -541,22 +541,47 @@ sudo chown -R www-data:www-data /sites/EXAMPLE.COM
 sudo chown -R SERVER-USER:SERVER-USER /sites/EXAMPLE.COM/shells
 ```
 
+### Update the WordPress directory permissions
+
+**TO-DO**
+
+
+
+
+### Configure Redis Object Cache
+
+An object cache stores database query results so that instead of running the query again the next time the results are needed, the results are served from the cache. This greatly improves the performance of WordPress as there is no longer a need to query the database for every piece of data required to return a response.
+
+Redis is an open-source option that is the latest and greatest when it comes to object caching.
+
+To get the latest stable version of Redis, you can use the official Redis package repository. First add the repository with the signing key and update the package lists:
 
 ```
-
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt update
 ```
 
+Then issue the following commands to install the Redis server and restart PHP-FPM:
 
 ```
-
+sudo apt install redis-server -y
+sudo service php8.3-fpm restart
 ```
 
+Now let’s make sure that Redis will start when the server is rebooted:
 
 ```
-
+sudo systemctl enable redis-server
 ```
 
+In order for WordPress to use Redis as an object cache, you need to install a Redis object cache plugin. Redis Object Cache by Till Krüss is an excellent choice.
 
+Once installed and activated, go to **Settings > Redis**.
+
+Click the **Enable Object Cache** button.
+
+This is also the screen where you can flush the cache if required.
 
 ```
 
