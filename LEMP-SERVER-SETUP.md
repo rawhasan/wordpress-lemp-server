@@ -583,21 +583,35 @@ Click the **Enable Object Cache** button.
 
 This is also the screen where you can flush the cache if required.
 
-```
+
+
+
+
+## 5. WordPress Cron
+Cron should be configured using the operating system daemon (background process), available on Linux and all Unix-based systems. Because cron runs as a daemon it will run based on the server’s system time and no longer requires a user to visit the WordPress site.
+
+Before configuring cron it’s recommended that you disable WordPress from automatically handling cron. Add the following line to your `wp-config.php` file:
 
 ```
-
-
+define('DISABLE_WP_CRON', true);
 ```
 
+### Introducing Crontab
+Scheduled tasks on a server are added to a text file called crontab and each line within the file represents one cron event. If you’re hosting multiple sites on your server, you will need one cron job per site and should consider staggering the execution of many cron jobs to avoid running them all at the same time and overwhelming your CPU.
+
+Open the crontab using the following command. If this is the first time you have opened the crontab, you may be asked to select an editor. Nano is usually the easiest.
+
+```
+crontab -e
 ```
 
-
-
-```
+Adding the following to the end of the file will trigger WordPress cron every 5 minutes. Remember to update the file path to point to your WordPress installation and to repeat the entry for each site.
 
 ```
+*/5 * * * * cd /home/abe/globex.turnipjuice.media/public; /usr/local/bin/wp cron event run --due-now >/dev/null 2>&1
+```
 
+The >/dev/null 2>&1 part ensures that no emails are sent to the Unix user account initiating the WordPress cron job scheduler.
 
 ```
 
