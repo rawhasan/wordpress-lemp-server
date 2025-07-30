@@ -25,8 +25,10 @@ example.com-wp-YYYY-MM-DD_HHMM.tar.gz
 Restores a WordPress site by:
 - **Option 1**: Pulling the backup archive from a remote server via `scp`
 - **Option 2**: Using a local backup archive already on the same server
+- **Dropping all existing tables** in the database before restoring
+- **Deleting the current `wp-content/` directory** before replacement
 - Extracting and importing the SQL database
-- Replacing the `wp-content` directory
+- Replacing `wp-content` with backed-up data
 - Cleaning up temporary files
 
 If `wp-config.php` is unavailable, it prompts for DB credentials manually.
@@ -38,7 +40,7 @@ If `wp-config.php` is unavailable, it prompts for DB credentials manually.
 - Zero hardcoded credentials
 - Timestamped, human-readable filenames
 - Works across servers or from local backups
-- Simple, auditable Bash scripts
+- Fully clean restore process (DB and files)
 - Compatible with any LEMP stack using `/sites/<domain>/public` structure
 
 ---
