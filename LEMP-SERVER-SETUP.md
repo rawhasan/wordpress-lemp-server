@@ -469,29 +469,28 @@ rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-di
 ```
 
 
+### Create a Database
+When hosting multiple sites on a single server, it’s good practice to create a separate database and database user for each individual site. You should also lock down the user privileges so that the user only has access to the databases that they require.
+
+```
+sudo mariadb
 ```
 
 ```
-
-
+CREATE DATABASE database-name CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
 ```
 
 ```
-
-
+CREATE USER 'user-name'@'localhost' IDENTIFIED BY 'password';
 ```
 
 ```
-
-
-
+GRANT ALL PRIVILEGES ON database-name.* TO 'user-name'@'localhost';
 ```
 
 ```
-
-
-```
-
+FLUSH PRIVILEGES;
+exit;
 ```
 
 
