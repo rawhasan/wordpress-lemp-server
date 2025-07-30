@@ -461,15 +461,6 @@ sudo service nginx reload
 
 
 
-### Upload the Site Backup
-
-In the local terminal:
-
-```
-rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-directory --progress
-```
-
-
 ### Create a Database
 When hosting multiple sites on a single server, it’s good practice to create a separate database and database user for each individual site. You should also lock down the user privileges so that the user only has access to the databases that they require.
 
@@ -525,6 +516,23 @@ wp core install --skip-email --url=https://EXAMPLE.COM --title='Site Title' --ad
 ```
 
 You should now be able to visit the domain name in your browser and be presented with a default WordPress installation.
+
+
+
+
+### Upload the Site Backup
+
+In the local terminal:
+
+```
+rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-directory --progress
+```
+
+
+
+### Restore the backup
+
+Copy the restore script from **Github** and run it.
 
 ```
 
