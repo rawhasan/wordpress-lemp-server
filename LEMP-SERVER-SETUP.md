@@ -596,7 +596,7 @@ Before configuring cron it’s recommended that you disable WordPress from autom
 define('DISABLE_WP_CRON', true);
 ```
 
-### Introducing Crontab
+### Set up Crontab
 Scheduled tasks on a server are added to a text file called crontab and each line within the file represents one cron event. If you’re hosting multiple sites on your server, you will need one cron job per site and should consider staggering the execution of many cron jobs to avoid running them all at the same time and overwhelming your CPU.
 
 Open the crontab using the following command. If this is the first time you have opened the crontab, you may be asked to select an editor. Nano is usually the easiest.
@@ -613,11 +613,73 @@ Adding the following to the end of the file will trigger WordPress cron every 5 
 
 The >/dev/null 2>&1 part ensures that no emails are sent to the Unix user account initiating the WordPress cron job scheduler.
 
-```
+
+
+
+
+### Testing Cron and Outgoing Email
+
+In order to test that both cron and outgoing emails are working correctly, I have written a small plugin that will send an email to the admin user every 5 minutes. This isn’t something that you’ll want to keep enabled indefinitely, so once you have established that everything is working correctly, remember to disable the plugin!
+
+Create a new file called `cron-test.php` within your plugins directory, with the following code:
+
 
 ```
+<?php
+/**
+ * Plugin Name: Cron & Email Test
+ * Plugin URI: https://spinupwp.com/hosting-wordpress-yourself-cron-email-automatic-backups/
+ * Description: WordPress cron and email test.
+ * Author: SpinupWP
+ * Version: 1.0
+ * Author URI: http://spinupwp.com
+ */
 
+/**
+ * Schedules
+ *
+ * @param array $schedules
+ *
+ * @return array
+ */
+function db_crontest_schedules( $schedules ) {
+    $schedules['five_minutes'] = array(
+        'interval' => 300,
+        'display'  => 'Once Every 5 Minutes',
+    );
 
+    return $schedules;
+}
+add_filter( 'cron_schedules', 'db_crontest_schedules', 10, 1 );
+
+/**
+ * Activate
+ */
+function db_crontest_activate() {
+    if ( ! wp_next_scheduled( 'db_crontest' ) ) {
+        wp_schedule_event( time(), 'five_minutes', 'db_crontest' );
+    }
+}
+register_activation_hook( __FILE__, 'db_crontest_activate' );
+
+/**
+ * Deactivate
+ */
+function db_crontest_deactivate() {
+    wp_unschedule_event( wp_next_scheduled( 'db_crontest' ), 'db_crontest' );
+}
+register_deactivation_hook( __FILE__, 'db_crontest_deactivate' );
+
+/**
+ * Crontest
+ */
+function db_crontest() {
+    wp_mail( get_option( 'admin_email' ), 'Cron Test', 'All good in the hood!' );
+}
+add_action( 'db_crontest', 'db_crontest' );
+```
+
+Upon activating the plugin, you should receive an email shortly after. If not, check your crontab configuration and SMTP Plugin settings.
 
 ```
 
