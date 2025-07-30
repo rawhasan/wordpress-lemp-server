@@ -54,6 +54,16 @@ else
   echo ""
 fi
 
+# Empty database
+echo "🧨 Dropping all existing tables in $DB_NAME..."
+mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SET FOREIGN_KEY_CHECKS = 0; \
+  SET GROUP_CONCAT_MAX_LEN=32768; \
+  SET @tables = (SELECT GROUP_CONCAT(CONCAT('`', table_name, '`')) \
+                 FROM information_schema.tables \
+                 WHERE table_schema = '$DB_NAME'); \
+  SET @drop = CONCAT('DROP TABLE IF EXISTS ', @tables); \
+  PREPARE stmt FROM @drop; EXECUTE stmt; DEALLOCATE PREPARE stmt;"
+
 # Restore database
 SQL_FILE=$(find "$MIGRATE_DIR" -name "*-db-*.sql" | head -n 1)
 if [[ -f "$SQL_FILE" ]]; then
@@ -70,8 +80,10 @@ if [[ -f "$WPCONTENT_ARCHIVE" ]]; then
   echo "📂 Extracting wp-content archive..."
   tar -xzf "$WPCONTENT_ARCHIVE" -C "$MIGRATE_DIR"
 
-  echo "♻️ Replacing wp-content directory..."
+  echo "🧺 Deleting old wp-content directory..."
   rm -rf "$PUBLIC_DIR/wp-content"
+
+  echo "♻️ Replacing wp-content directory..."
   mv "$MIGRATE_DIR/wp-content" "$PUBLIC_DIR/"
 else
   echo "❌ wp-content archive matching '*-wp-content-*.tar.gz' not found in $MIGRATE_DIR"
