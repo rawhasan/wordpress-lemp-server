@@ -2,12 +2,12 @@
 
 ## 1. Set Up and Secure a VPS
 
-### Set the Timezone
+### ✅ Set the Timezone
 ```
 dpkg-reconfigure tzdata
 ```
 
-### Install Software Updates
+### ✅ Install Software Updates
 ```
 apt update
 apt dist-upgrade
@@ -18,7 +18,7 @@ apt autoremove
 reboot now
 ```
 
-### Automatic Security Updates
+### ✅ Automatic Security Updates
 
 ```
 apt install unattended-upgrades
@@ -84,7 +84,7 @@ service unattended-upgrades restart
 ```
 
 
-### Create a New User
+### ✅ Create a New User
 
 First, create the new user:
 
@@ -110,7 +110,7 @@ Then login with the new account:
 ssh USERNAME@SERVER_IP
 ```
 
-### Configure Uncomplicated Firewall
+### ✅ Configure Uncomplicated Firewall
 
 Install Uncomplicated Firewall:
 
@@ -172,7 +172,7 @@ To                         Action      From
 ```
 
 
-### Install Fail2ban
+### ✅ Install Fail2ban
 
 ```
 sudo apt install fail2ban
@@ -198,7 +198,7 @@ sudo service fail2ban status
 ```
 ## 2. Install Nginx, PHP 8.3, WP-CLI, and MariaDB
 
-### Install Nginx
+### ✅ Install Nginx
 
 First, add the **Ondřej Surý** repository and update the package lists:
 
@@ -218,7 +218,7 @@ nginx -v
 Now you can try visiting the domain name pointing to your server’s IP address in your browser and you should see an Nginx welcome page. Make sure to type in `http://` as browsers default to `https://` now and that won’t work as we have yet to set up SSL.
 
 
-### Copy the Nginx Kit (Enhanced)
+### ✅ Copy the Nginx Kit (Enhanced)
 
 Back up the current Nginx configuration:
 
@@ -256,7 +256,7 @@ Visit the domain name pointing to the server’s IP address in your browser agai
 
 
 
-### Install PHP 8.3
+### ✅ Install PHP 8.3
 Just as with Nginx, the official Ubuntu package repository does contain PHP packages. However, they are not the most up-to-date. Again, I use one maintained by **Ondřej Surý** for installing PHP. Add the repository and update the package lists as you did for Nginx:
 
 ```
@@ -279,7 +279,7 @@ php-fpm8.3 -v
 
 
 
-### Install WP-CLI
+### ✅ Install WP-CLI
 
 Navigate to your home directory:
 
@@ -315,7 +315,7 @@ You can now access the WP-CLI tool by typing `wp`.
 
 
 
-### Install MariaDB
+### ✅ Install MariaDB
 
 ```
 sudo apt update
@@ -376,9 +376,9 @@ sudo mysql_secure_installation
 ```
 ## 3. Configure Nginx to Serve WordPress Over HTTPS
 
-### Point DNS from Namecheap to the server IP
+### ✅ Point DNS from Namecheap to the server IP
 
-### Install Certbot
+### ✅ Install Certbot
 
 Now let’s install Certbot, the free, open source tool for managing Let’s Encrypt certificates:
 
@@ -389,7 +389,7 @@ sudo apt update
 sudo apt install certbot python3-certbot-nginx
 ```
 
-### Obtain an SSL Certificate
+### ✅ Obtain an SSL Certificate
 
 To obtain a certificate, you can now use the Nginx Certbot plugin, by issuing the following command. The certificate can cover multiple domains (100 maximum) by appending additional `d` flags.
 
@@ -412,7 +412,7 @@ sudo certbot renew --dry-run
 ```
 
 
-### Add an Nginx Configuration for the Site
+### ✅ Add an Nginx Configuration for the Site
 
 Navigate to your home directory.
 
@@ -466,7 +466,7 @@ sudo service nginx reload
 
 
 
-### Create a Database
+### ✅ Create a Database
 When hosting multiple sites on a single server, it’s good practice to create a separate database and database user for each individual site. You should also lock down the user privileges so that the user only has access to the databases that they require.
 
 ```
@@ -501,7 +501,7 @@ exit
 
 
 
-### Install WordPress
+### ✅ Install WordPress
 
 
 ```
@@ -525,7 +525,7 @@ You should now be able to visit the domain name in your browser and be presented
 
 
 
-### Upload the Site Backup
+### ✅ Upload the Site Backup
 
 In the local terminal:
 
@@ -535,7 +535,7 @@ rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-di
 
 
 
-### Restore the backup
+### ✅ Restore the backup
 
 Copy the restore script from **Github** and run it.
 
@@ -546,7 +546,7 @@ sudo chown -R www-data:www-data /sites/EXAMPLE.COM
 sudo chown -R SERVER-USER:SERVER-USER /sites/EXAMPLE.COM/shells
 ```
 
-### Update the WordPress directory permissions
+### ✅ Update the WordPress directory permissions
 
 **TO-DO**
 ```
@@ -607,7 +607,7 @@ Before configuring cron it’s recommended that you disable WordPress from autom
 define('DISABLE_WP_CRON', true);
 ```
 
-### Set up Crontab
+### ✅ Set up Crontab
 Scheduled tasks on a server are added to a text file called crontab and each line within the file represents one cron event. If you’re hosting multiple sites on your server, you will need one cron job per site and should consider staggering the execution of many cron jobs to avoid running them all at the same time and overwhelming your CPU.
 
 Open the crontab using the following command. If this is the first time you have opened the crontab, you may be asked to select an editor. Nano is usually the easiest.
@@ -628,7 +628,7 @@ The >/dev/null 2>&1 part ensures that no emails are sent to the Unix user accoun
 
 
 
-### Testing Cron and Outgoing Email
+### ✅ Testing Cron and Outgoing Email
 
 In order to test that both cron and outgoing emails are working correctly, I have written a small plugin that will send an email to the admin user every 5 minutes. This isn’t something that you’ll want to keep enabled indefinitely, so once you have established that everything is working correctly, remember to disable the plugin!
 
