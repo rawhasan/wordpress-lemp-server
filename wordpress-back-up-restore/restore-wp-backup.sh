@@ -54,15 +54,16 @@ else
   echo ""
 fi
 
-# Empty database
+# Drop all tables in the database
 echo "🧨 Dropping all existing tables in $DB_NAME..."
-mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SET FOREIGN_KEY_CHECKS = 0; \
-  SET GROUP_CONCAT_MAX_LEN=32768; \
-  SET @tables = (SELECT GROUP_CONCAT(CONCAT('`', table_name, '`')) \
-                 FROM information_schema.tables \
-                 WHERE table_schema = '$DB_NAME'); \
-  SET @drop = CONCAT('DROP TABLE IF EXISTS ', @tables); \
-  PREPARE stmt FROM @drop; EXECUTE stmt; DEALLOCATE PREPARE stmt;"
+TABLES=$(mysql -u "$DB_USER" -p"$DB_PASS" -Nse "SHOW TABLES;" "$DB_NAME")
+if [ -n "$TABLES" ]; then
+  for TABLE in $TABLES; do
+    mysql -u "$DB_USER" -p"$DB_PASS" -e "DROP TABLE \`$TABLE\`;" "$DB_NAME"
+  done
+else
+  echo "ℹ️ No tables found in $DB_NAME to drop."
+fi
 
 # Restore database
 SQL_FILE=$(find "$MIGRATE_DIR" -name "*-db-*.sql" | head -n 1)
