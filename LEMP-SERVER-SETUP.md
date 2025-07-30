@@ -493,10 +493,12 @@ FLUSH PRIVILEGES;
 exit;
 ```
 
-
+Test the database:
 
 ```
-
+mariadb -u user-name -p
+show databases;
+exit
 ```
 
 
