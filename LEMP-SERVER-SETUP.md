@@ -420,6 +420,7 @@ Create the required directories and set the correct permissions:
 ```
 sudo mkdir -p /sites/EXAMPLE.COM/public /sites/EXAMPLE.COM/logs /sites/EXAMPLE.COM/backups /sites/EXAMPLE.COM/shells
 chmod -R 755 EXAMPLE.COM
+sudo chown -R SERVER-USER:SERVER-USER sites
 ```
 
 Create the server block in Nginx:
