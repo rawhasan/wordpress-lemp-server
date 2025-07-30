@@ -548,7 +548,7 @@ sudo chown -R SERVER-USER:SERVER-USER /sites/EXAMPLE.COM/shells
 
 
 
-### Configure Redis Object Cache
+## 4. Configure Redis Object Cache
 
 An object cache stores database query results so that instead of running the query again the next time the results are needed, the results are served from the cache. This greatly improves the performance of WordPress as there is no longer a need to query the database for every piece of data required to return a response.
 
