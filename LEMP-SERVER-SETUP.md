@@ -360,7 +360,7 @@ Test if the root password is working:
 mysql -u root -p
 ```
 
-Now we can safely run the security script (**Enable unix_socket instead of using root password, Disallow root login remotely**):
+Now we can safely run the security script (**Keep oassword login for root, Disallow root login remotely**):
 
 ```
 sudo mysql_secure_installation
@@ -473,7 +473,7 @@ rsync -a backup-filename-in-local-machine user-name@server-ip-address:/target-di
 When hosting multiple sites on a single server, it’s good practice to create a separate database and database user for each individual site. You should also lock down the user privileges so that the user only has access to the databases that they require.
 
 ```
-sudo mariadb
+mariadb -u root -p
 ```
 
 ```
