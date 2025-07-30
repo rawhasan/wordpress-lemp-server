@@ -1,6 +1,6 @@
 # ♻️ WordPress Restore Script
 
-This script restores a WordPress site from a timestamped backup archive — either pulled from a remote server or already present on the local server.
+This script restores a WordPress site from a timestamped backup archive — either pulled from a remote server or already present on the local server. It ensures a clean restore by dropping existing database tables and deleting the current `wp-content` folder before applying the backup.
 
 ---
 
@@ -45,12 +45,14 @@ example.com-wp-YYYY-MM-DD_HHMM.tar.gz
 
 ## 🔧 What It Does
 
-- Creates target directories under `/sites/<domain>/`
-- Extracts the `.tar.gz` archive into a `migrate` directory
-- Reads DB credentials from `wp-config.php` or prompts for them
-- Restores the database from the extracted SQL file
-- Extracts and replaces the `wp-content` directory
-- Cleans up all temporary files after success
+- Creates directories under `/sites/<domain>/`
+- Extracts the `.tar.gz` backup into `/sites/<domain>/migrate/`
+- Reads DB credentials from `wp-config.php` or prompts the user
+- **Drops all existing tables** from the target database
+- **Deletes the existing `wp-content/` directory**
+- Imports the SQL dump
+- Replaces `wp-content/` with backed-up content
+- Cleans up temporary files
 
 ---
 
@@ -67,11 +69,13 @@ After restoration, it deletes:
 ## ✅ Sample Output
 
 ```bash
-📦 Pulling backup from old server...
+📦 Using local backup: example.com-wp-2025-07-28_2145.tar.gz
 📂 Extracting backup...
 🔍 Extracting database credentials from wp-config.php...
+🧨 Dropping all existing tables in example_com...
 🗄️ Restoring database...
 📂 Extracting wp-content archive...
+🧺 Deleting old wp-content directory...
 ♻️ Replacing wp-content directory...
 🧹 Cleaning up temporary files...
 ✅ Restoration completed successfully for example.com
@@ -79,4 +83,4 @@ After restoration, it deletes:
 
 ---
 
-Created to safely restore WordPress sites using domain-based, timestamped backups.
+Created for reliable, clean WordPress restoration across environments.
