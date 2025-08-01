@@ -3,6 +3,13 @@
 # === Detect current user ===
 CURRENT_USER=$(whoami)
 
+# === Block script from being run as root ===
+if [ "$CURRENT_USER" = "root" ]; then
+  echo "❌ Do NOT run this script as root."
+  echo "➡️  Please run it as your regular SSH user (e.g., rawhasan)."
+  exit 1
+fi
+
 # === Input domain name ===
 read -p "Enter the domain name (e.g., example.com): " DOMAIN
 
@@ -11,8 +18,8 @@ SITE_ROOT="/sites/$DOMAIN"
 
 # === Validate site path ===
 if [ ! -d "$SITE_ROOT" ]; then
-    echo "❌ Directory $SITE_ROOT does not exist."
-    exit 1
+  echo "❌ Directory $SITE_ROOT does not exist."
+  exit 1
 fi
 
 echo "🔧 Applying ownership and permissions to $SITE_ROOT as user '$CURRENT_USER'..."
@@ -39,7 +46,7 @@ for REL_PATH in "${WRITABLE_DIRS[@]}"; do
     echo "📂 Making writable: $TARGET"
     chmod -R 775 "$TARGET"
   else
-    echo "⚠️ Not found: $TARGET"
+    echo "⚠️  Not found: $TARGET"
   fi
 done
 
