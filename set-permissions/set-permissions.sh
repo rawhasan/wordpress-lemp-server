@@ -65,7 +65,7 @@ for top in */; do
   echo ""
   echo "🔹 ${top%/}/"
 
-  find "$top" -maxdepth 3 -print0 | while IFS= read -r -d '' item; do
+  find "$top" -maxdepth 1 -print0 | while IFS= read -r -d '' item; do
     perms=$(stat -c '%a' "$item")
     owner=$(stat -c '%U' "$item")
     group=$(stat -c '%G' "$item")
