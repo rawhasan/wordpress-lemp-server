@@ -39,11 +39,6 @@ This script applies best-practice file and directory permissions for a WordPress
 ---
 
 ## ▶️ Usage
-First change the directory ownership to avoid permission issue:
-
-```bash
-sudo chown -R rawhasan:www-data /sites/example.com
-```
 
 1. Place the script on your server, e.g., `set-permissions.sh`
 2. Make it executable:
@@ -68,22 +63,7 @@ If you accidentally ran the script as `root`, fix it by running the following as
 sudo chown -R rawhasan:www-data /sites/example.com
 ```
 
-> Replace `rawhasan` with your actual server user.
-
-Then re-apply the correct permissions:
-
-```bash
-# Directories
-find /sites/example.com -type d -exec chmod 750 {} \;
-
-# Files
-find /sites/example.com -type f -exec chmod 640 {} \;
-
-# Writable dirs
-chmod -R 775 /sites/example.com/public/wp-content/uploads
-chmod -R 775 /sites/example.com/cache
-```
-
+The re-run the script.
 ---
 
 ## 📁 Example Output (Depth: 1)
