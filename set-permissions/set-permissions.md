@@ -66,6 +66,49 @@ Then re-run the script.
 
 ---
 
+## 📁 Expected File Structure After Running the Script
+
+```bash
+/sites/example.com/              rawhasan:www-data  750
+├── public/                      rawhasan:www-data  750
+│   ├── wp-content/              rawhasan:www-data  750
+│   │   ├── uploads/             rawhasan:www-data  775   # Writable by PHP
+│   │   │   ├── image.jpg        rawhasan:www-data  640
+│   │   │   └── ...              rawhasan:www-data  640
+│   │   └── plugins/             rawhasan:www-data  750
+│   ├── wp-config.php            rawhasan:www-data  640
+│   └── index.php                rawhasan:www-data  640
+├── cache/                       rawhasan:www-data  775   # Writable by PHP
+│   └── plugin-cache-data/       rawhasan:www-data  775
+│       └── cached-file.html     rawhasan:www-data  640
+├── logs/                        rawhasan:www-data  750
+│   └── error.log                rawhasan:www-data  640
+├── backups/                     rawhasan:www-data  750
+│   └── site-backup.tar.gz       rawhasan:www-data  640
+├── shells/                      rawhasan:www-data  750
+│   └── set-permissions.sh       rawhasan:www-data  750
+└── migration/                   rawhasan:www-data  750
+    └── migrate.sql              rawhasan:www-data  640
+```
+
+---
+
+### 🔑 Key Takeaways
+
+- **Directories**: Set to `750`  
+  ↳ Owner can read/write/enter, group (`www-data`) can access if needed  
+- **Files**: Set to `640`  
+  ↳ Owner can read/write, group can read, others have no access  
+- **Writable directories**:  
+  - `uploads/` and `cache/` → `775` so WordPress (via `www-data`) can write
+- **Ownership**:  
+  - All files and directories are owned by your SSH user (e.g., `rawhasan`)  
+  - Group ownership is assigned to `www-data` for PHP/Nginx access
+- This structure ensures:
+  - ✅ No FTP prompts in WordPress
+  - ✅ Secure and functional file operations for both SSH and PHP
+
+
 ## 🔐 Security Notes
 
 - Never use `777` permissions — they expose your site to serious security risks.
