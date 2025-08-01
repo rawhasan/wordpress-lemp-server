@@ -1,4 +1,3 @@
-```markdown
 # 🔐 LEMP Server Permissions Script
 
 This script applies best-practice file and directory permissions for a WordPress site hosted on a LEMP stack under `/sites/<domain>`. It ensures secure ownership and access for your server user and the web server (`www-data`), while preserving necessary write permissions for uploads and caching.
@@ -87,6 +86,3 @@ chmod -R 775 /sites/example.com/cache
 - Upload and cache folders must remain writable by `www-data` for WordPress functionality.
 - All other folders are restricted from public access by default and should be protected further via Nginx if needed.
 - This setup ensures your SSH user can manage files, and WordPress can function without asking for FTP credentials.
-
----
-```
