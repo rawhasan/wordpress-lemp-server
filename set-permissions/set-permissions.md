@@ -1,22 +1,24 @@
+```markdown
 # 🔐 LEMP Server Permissions Script
 
-This script applies best-practice file and directory permissions for a LEMP-based WordPress site under `/sites/<domain>`. It ensures that only the necessary users have access to sensitive directories, while keeping the public WordPress files readable by the web server.
+This script applies best-practice file and directory permissions for a WordPress site hosted on a LEMP stack under `/sites/<domain>`. It ensures secure ownership and access for your server user and the web server (`www-data`), while preserving necessary write permissions for uploads and caching.
 
 ---
 
 ## 🛠️ What It Does
 
+- Detects the current user running the script
+- **Blocks execution as root** to prevent locking out the SSH user
 - Prompts for the domain name (e.g., `example.com`)
-- Applies secure file ownership:  
-  - Owner: current Linux user  
-  - Group: `www-data` (used by Nginx and PHP-FPM)
-- Sets secure file and folder permissions:
-  - Directories: `750` (owner full, group read+execute)
-  - Files: `640` (owner read+write, group read)
-- Makes specific writable directories (`uploads` and `cache`) group-writable by PHP:
-  - `wp-content/uploads` → for media files
-  - `cache` → for caching plugins like WP Rocket, W3TC, etc.
-- Checks if required directories exist before applying changes
+- Applies secure file ownership:
+  - Owner: the current user (e.g., `rawhasan`)
+  - Group: `www-data` (for Nginx/PHP-FPM access)
+- Applies permissions:
+  - Directories → `750`
+  - Files → `640`
+- Grants write access to:
+  - `public/wp-content/uploads`
+  - `cache` (if exists)
 
 ---
 
@@ -43,7 +45,7 @@ This script applies best-practice file and directory permissions for a LEMP-base
    ```bash
    chmod +x set-permissions.sh
    ```
-3. Run the script:
+3. Run it as your SSH user (not root):
    ```bash
    ./set-permissions.sh
    ```
@@ -51,22 +53,40 @@ This script applies best-practice file and directory permissions for a LEMP-base
 
 ---
 
-## 🔧 Fixing Ownership Issues
+## 🛑 Do NOT Run as Root
 
-If you previously ran the script as `root`, or see `Operation not permitted` errors, it means your regular SSH user no longer owns the files.
+Running this script as `root` will change ownership of files to `root`, locking out your regular SSH user from accessing or modifying files via SFTP or CLI.
 
-Run the following **as root** or using `sudo` to restore ownership:
+If you accidentally ran the script as `root`, fix it by running the following as root or via `sudo`:
 
 ```bash
-chown -R SERVER-USER:www-data /sites/EXAMPLE.COM
+chown -R rawhasan:www-data /sites/example.com
 ```
 
-Then re-run the script.
+> Replace `rawhasan` with your actual server user.
+
+Then re-apply the correct permissions:
+
+```bash
+# Directories
+find /sites/example.com -type d -exec chmod 750 {} \;
+
+# Files
+find /sites/example.com -type f -exec chmod 640 {} \;
+
+# Writable dirs
+chmod -R 775 /sites/example.com/public/wp-content/uploads
+chmod -R 775 /sites/example.com/cache
+```
+
 ---
 
 ## 🔐 Security Notes
 
-- Avoid using `777` permissions — they are unsafe and unnecessary.
-- Both `uploads` and `cache` directories must be writable by PHP to avoid file permission errors in WordPress.
-- All other folders are restricted from web access by default and should not be publicly exposed.
-- Ownership ensures your SSH user can manage files via SFTP, and `www-data` can serve and write via Nginx/PHP.
+- Never use `777` permissions — they expose your site to serious security risks.
+- Upload and cache folders must remain writable by `www-data` for WordPress functionality.
+- All other folders are restricted from public access by default and should be protected further via Nginx if needed.
+- This setup ensures your SSH user can manage files, and WordPress can function without asking for FTP credentials.
+
+---
+```
