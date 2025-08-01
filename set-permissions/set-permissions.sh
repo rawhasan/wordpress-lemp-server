@@ -50,4 +50,27 @@ for REL_PATH in "${WRITABLE_DIRS[@]}"; do
   fi
 done
 
+echo ""
 echo "✅ Permissions successfully set for $DOMAIN"
+
+# === Final permission tree output (up to 3 levels deep) ===
+echo ""
+echo "📁 Final tree with numeric permissions (up to 3 levels deep) under: $SITE_ROOT"
+echo ""
+
+cd "$SITE_ROOT" || exit 1
+
+# List all first-level subdirectories
+for top in */; do
+  echo ""
+  echo "🔹 ${top%/}/"
+
+  find "$top" -maxdepth 1 -print0 | while IFS= read -r -d '' item; do
+    perms=$(stat -c '%a' "$item")
+    owner=$(stat -c '%U' "$item")
+    group=$(stat -c '%G' "$item")
+    relpath="${item#./}"
+    indent=$(echo "$relpath" | sed -e 's|[^/][^/]*/|│   |g' -e 's|│   \([^│]*\)$|└── \1|')
+    printf "%s [%s %s:%s]\n" "$indent" "$perms" "$owner" "$group"
+  done
+done
