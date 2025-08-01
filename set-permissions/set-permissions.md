@@ -1,3 +1,4 @@
+```markdown
 # 🔐 LEMP Server Permissions Script
 
 This script applies best-practice file and directory permissions for a LEMP-based WordPress site under `/sites/<domain>`. It ensures that only the necessary users have access to sensitive directories, while keeping the public WordPress files readable by the web server.
@@ -51,9 +52,25 @@ This script applies best-practice file and directory permissions for a LEMP-base
 
 ---
 
+## 🔧 Fixing Ownership Issues
+
+If you previously ran the script as `root`, or see `Operation not permitted` errors, it means your regular SSH user no longer owns the files.
+
+Run the following **as root** or using `sudo` to restore ownership:
+
+```bash
+chown -R SERVER-USER:www-data /sites/EXAMPLE.COM
+```
+
+Then re-run the script.
+---
+
 ## 🔐 Security Notes
 
 - Avoid using `777` permissions — they are unsafe and unnecessary.
 - Both `uploads` and `cache` directories must be writable by PHP to avoid file permission errors in WordPress.
 - All other folders are restricted from web access by default and should not be publicly exposed.
 - Ownership ensures your SSH user can manage files via SFTP, and `www-data` can serve and write via Nginx/PHP.
+
+---
+```
