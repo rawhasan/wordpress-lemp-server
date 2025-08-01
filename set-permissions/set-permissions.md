@@ -59,24 +59,10 @@ Running this script as `root` will change ownership of files to `root`, locking 
 If you accidentally ran the script as `root`, fix it by running the following as root or via `sudo`:
 
 ```bash
-chown -R rawhasan:www-data /sites/example.com
+chown -R SERVER-USER:www-data /sites/example.com
 ```
 
-> Replace `rawhasan` with your actual server user.
-
-Then re-apply the correct permissions:
-
-```bash
-# Directories
-find /sites/example.com -type d -exec chmod 750 {} \;
-
-# Files
-find /sites/example.com -type f -exec chmod 640 {} \;
-
-# Writable dirs
-chmod -R 775 /sites/example.com/public/wp-content/uploads
-chmod -R 775 /sites/example.com/cache
-```
+Then re-run the script.
 
 ---
 
