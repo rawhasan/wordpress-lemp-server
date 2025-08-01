@@ -59,7 +59,7 @@ Running this script as `root` will change ownership of files to `root`, locking 
 If you accidentally ran the script as `root`, fix it by running the following as root or via `sudo`:
 
 ```bash
-chown -R SERVER-USER:www-data /sites/example.com
+sudo chown -R SERVER-USER:www-data /sites/example.com
 ```
 
 Then re-run the script.
