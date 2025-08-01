@@ -39,6 +39,12 @@ This script applies best-practice file and directory permissions for a WordPress
 
 ## ▶️ Usage
 
+0. Run this first:
+
+```bash
+sudo chown -R SERVER-USER:www-data /sites/example.com
+```
+
 1. Place the script on your server, e.g., `set-permissions.sh`
 2. Make it executable:
    ```bash
