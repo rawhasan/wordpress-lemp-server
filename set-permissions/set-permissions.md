@@ -18,6 +18,7 @@ This script applies best-practice file and directory permissions for a WordPress
 - Grants write access to:
   - `public/wp-content/uploads`
   - `cache` (if exists)
+- Displays a summary tree (depth 1) of each top-level folder after permission changes
 
 ---
 
@@ -39,12 +40,6 @@ This script applies best-practice file and directory permissions for a WordPress
 
 ## ▶️ Usage
 
-0. Run this first:
-
-```bash
-sudo chown -R SERVER-USER:www-data /sites/example.com
-```
-
 1. Place the script on your server, e.g., `set-permissions.sh`
 2. Make it executable:
    ```bash
@@ -65,55 +60,41 @@ Running this script as `root` will change ownership of files to `root`, locking 
 If you accidentally ran the script as `root`, fix it by running the following as root or via `sudo`:
 
 ```bash
-sudo chown -R SERVER-USER:www-data /sites/example.com
+chown -R rawhasan:www-data /sites/example.com
 ```
 
-Then re-run the script.
+> Replace `rawhasan` with your actual server user.
 
----
-
-## 📁 Expected File Structure After Running the Script
+Then re-apply the correct permissions:
 
 ```bash
-/sites/example.com/              rawhasan:www-data  750
-├── public/                      rawhasan:www-data  750
-│   ├── wp-content/              rawhasan:www-data  750
-│   │   ├── uploads/             rawhasan:www-data  775   # Writable by PHP
-│   │   │   ├── image.jpg        rawhasan:www-data  640
-│   │   │   └── ...              rawhasan:www-data  640
-│   │   └── plugins/             rawhasan:www-data  750
-│   ├── wp-config.php            rawhasan:www-data  640
-│   └── index.php                rawhasan:www-data  640
-├── cache/                       rawhasan:www-data  775   # Writable by PHP
-│   └── plugin-cache-data/       rawhasan:www-data  775
-│       └── cached-file.html     rawhasan:www-data  640
-├── logs/                        rawhasan:www-data  750
-│   └── error.log                rawhasan:www-data  640
-├── backups/                     rawhasan:www-data  750
-│   └── site-backup.tar.gz       rawhasan:www-data  640
-├── shells/                      rawhasan:www-data  750
-│   └── set-permissions.sh       rawhasan:www-data  750
-└── migration/                   rawhasan:www-data  750
-    └── migrate.sql              rawhasan:www-data  640
+# Directories
+find /sites/example.com -type d -exec chmod 750 {} \;
+
+# Files
+find /sites/example.com -type f -exec chmod 640 {} \;
+
+# Writable dirs
+chmod -R 775 /sites/example.com/public/wp-content/uploads
+chmod -R 775 /sites/example.com/cache
 ```
 
 ---
 
-### 🔑 Key Takeaways
+## 📁 Example Output (Depth: 1)
 
-- **Directories**: Set to `750`  
-  ↳ Owner can read/write/enter, group (`www-data`) can access if needed  
-- **Files**: Set to `640`  
-  ↳ Owner can read/write, group can read, others have no access  
-- **Writable directories**:  
-  - `uploads/` and `cache/` → `775` so WordPress (via `www-data`) can write
-- **Ownership**:  
-  - All files and directories are owned by your SSH user (e.g., `rawhasan`)  
-  - Group ownership is assigned to `www-data` for PHP/Nginx access
-- This structure ensures:
-  - ✅ No FTP prompts in WordPress
-  - ✅ Secure and functional file operations for both SSH and PHP
+```bash
+🔹 public/
+└── wp-content [750 rawhasan:www-data]
 
+🔹 cache/
+└── plugin-cache [775 rawhasan:www-data]
+
+🔹 logs/
+└── error.log [640 rawhasan:www-data]
+```
+
+---
 
 ## 🔐 Security Notes
 
