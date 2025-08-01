@@ -13,9 +13,10 @@ This script applies best-practice file and directory permissions for a LEMP-base
 - Sets secure file and folder permissions:
   - Directories: `750` (owner full, group read+execute)
   - Files: `640` (owner read+write, group read)
-- Makes the `wp-content/uploads` folder writable by PHP:
-  - Sets permissions to `775` for uploads directory
-- Checks if the `/sites/<domain>` path exists before proceeding
+- Makes specific writable directories (`uploads` and `cache`) group-writable by PHP:
+  - `wp-content/uploads` → for media files
+  - `cache` → for caching plugins like WP Rocket, W3TC, etc.
+- Checks if required directories exist before applying changes
 
 ---
 
@@ -24,6 +25,9 @@ This script applies best-practice file and directory permissions for a LEMP-base
 ```bash
 /sites/<domain>/
 ├── public/       # WordPress root
+│   └── wp-content/
+│       └── uploads/   # Writable media directory
+├── cache/        # Writable cache directory (outside public)
 ├── logs/         # Logs (Nginx/PHP)
 ├── backups/      # Site backups
 ├── shells/       # Custom scripts
@@ -49,7 +53,7 @@ This script applies best-practice file and directory permissions for a LEMP-base
 
 ## 🔐 Security Notes
 
-- Avoid using `777` permissions at all costs.
-- `uploads` directory must remain writable by PHP (via `www-data`) to allow media uploads from the WP admin.
-- Other directories should **not** be exposed publicly via Nginx.
-- Ownership should be consistent with how you're deploying or editing files (e.g., SSH/SFTP via your user).
+- Avoid using `777` permissions — they are unsafe and unnecessary.
+- Both `uploads` and `cache` directories must be writable by PHP to avoid file permission errors in WordPress.
+- All other folders are restricted from web access by default and should not be publicly exposed.
+- Ownership ensures your SSH user can manage files via SFTP, and `www-data` can serve and write via Nginx/PHP.
