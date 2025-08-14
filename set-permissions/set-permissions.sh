@@ -1,168 +1,132 @@
-#!/bin/bash
-# fix-wp-perms-interactive.sh
-# Interactive WordPress permission/ownership fixer (one site at a time)
-#
-# Model:
-#   Owner  = current SSH user
-#   Group  = www-data (PHP-FPM/nginx)
-#   Global (except wp-content): dirs 750, files 640
-#   wp-content subtree: dirs 2775 (setgid), files 664
-#   Ensures common writable subdirs exist: uploads, cache, upgrade, wflogs
-#   Optional ACLs if setfacl is available (keeps new files group-writable)
+# 🔐 LEMP Server Permissions Script
 
-set -euo pipefail
+An interactive utility to **discover WordPress sites** under `/sites`, **fix file ownership and permissions** for one site at a time, and then **repeat or exit** based on your choice. It prevents WordPress from asking for FTP credentials during updates, plugin/theme installs, and media uploads—while keeping the rest of the codebase locked down.
 
-# --- Defaults ---
-OWNER="${USER}"
-GROUP="www-data"
-SITES_DIR="/sites"
-TREE_DEPTH=1
-USE_ACL=true
+---
 
-info()  { echo -e "➤ $*"; }
-ok()    { echo -e "✅ $*"; }
-warn()  { echo -e "⚠️  $*"; }
-err()   { echo -e "❌ $*" >&2; }
+## ✅ What it does
 
-# --- Safety checks ---
-if [[ "$(whoami)" == "root" ]]; then
-  err "Do NOT run as root. Use your regular SSH user with sudo."
-  exit 1
-fi
-command -v sudo >/dev/null 2>&1 || { err "sudo is required."; exit 1; }
+- Auto-discovers sites matching: `/sites/<domain>/public/wp-content`
+- Lets you select **one site** to fix per run, then asks to **fix another or exit**
+- Applies a **secure, WordPress-friendly** permission model:
+  - Owner = your SSH user
+  - Group = `www-data` (PHP-FPM/nginx)
+  - Global (except `wp-content`): **dirs 750**, **files 640**
+  - `wp-content`: **dirs 2775 (g+s)**, **files 664** (group-writable)
+  - Creates common writable subfolders: `uploads`, `cache`, `upgrade`, `wflogs`
+  - Optionally applies default ACLs (if `setfacl` is available) so new files inherit group write
 
-if ! id -nG "$OWNER" | grep -qw "$GROUP"; then
-  warn "$OWNER is not in the '$GROUP' group. Consider: sudo usermod -aG $GROUP $OWNER && newgrp $GROUP"
-fi
+---
 
-# --- Core permission function ---
-apply_perms() {
-  local domain="$1"
-  local ROOT="$SITES_DIR/$domain"
-  local PUBLIC="$ROOT/public"
-  local WPC="$PUBLIC/wp-content"
-  local SITE_CACHE="$ROOT/cache"
+## 🔧 Requirements
 
-  if [[ ! -d "$ROOT" ]]; then err "[$domain] $ROOT not found."; return 1; fi
-  if [[ ! -d "$WPC"  ]]; then err "[$domain] $WPC not found.";  return 1; fi
+- Run as a **non-root** user with `sudo` privileges
+- PHP-FPM/nginx group is **`www-data`** (default on Debian/Ubuntu). If your pool uses a different group, adjust in the script.
+- Optional but recommended: make sure your SSH user is in the `www-data` group:
+  ```bash
+  sudo usermod -aG www-data "$(whoami)"
+  # Apply group change in current session:
+  newgrp www-data
+  ```
 
-  info "[$domain] Setting ownership $OWNER:$GROUP (sudo)…"
-  sudo chown -R "$OWNER:$GROUP" "$ROOT"
+---
 
-  info "[$domain] Baseline perms (exclude wp-content): dirs 750, files 640…"
-  find "$PUBLIC" -path "$WPC" -prune -o -type d -exec chmod 750 {} +
-  find "$PUBLIC" -path "$WPC" -prune -o -type f -exec chmod 640 {} +
+## 🔒 Permission model (summary)
 
-  info "[$domain] wp-content perms: dirs 2775 (g+s), files 664…"
-  find "$WPC" -type d -exec chmod 2775 {} +
-  find "$WPC" -type f -exec chmod 664 {} +
-  chmod g+s "$WPC" || true
+| Path / Scope                  | Owner        | Group     | Dirs | Files | Notes                         |
+|------------------------------|--------------|-----------|------|-------|-------------------------------|
+| Whole site (except wp-content) | your SSH user | www-data | 750  | 640   | Locked down                   |
+| `public/wp-content/**`       | your SSH user | www-data | 2775 | 664   | g+s on dirs, group-writable   |
+| `public/wp-config.php`       | your SSH user | www-data |  —   | 640   | Hardened                      |
+| `/sites/<domain>/cache` (if exists) | your SSH user | www-data | 2775 | 664   | Writable cache                |
 
-  # Ensure common subdirs
-  for d in uploads cache upgrade wflogs; do
-    sudo install -d -m 2775 -o "$OWNER" -g "$GROUP" "$WPC/$d"
-  done
+> Why `2775`? The **setgid bit** (`2`) on directories ensures new files/dirs inherit the **`www-data`** group, keeping WP updates/uploads smooth.
 
-  # Optional ACLs keep group-writable for new files
-  if $USE_ACL && command -v setfacl >/dev/null 2>&1; then
-    info "[$domain] Applying default ACLs for group '$GROUP' on wp-content (sudo)…"
-    sudo setfacl -R -m g:"$GROUP":rwx -m d:g:"$GROUP":rwx "$WPC" || true
-  fi
+---
 
-  # Site-level cache (if exists)
-  if [[ -d "$SITE_CACHE" ]]; then
-    info "[$domain] Making $SITE_CACHE writable (dirs 2775; files 664)…"
-    find "$SITE_CACHE" -type d -exec chmod 2775 {} +
-    find "$SITE_CACHE" -type f -exec chmod 664 {} +
-  fi
+## 📦 Install
 
-  # Harden wp-config.php
-  if [[ -f "$PUBLIC/wp-config.php" ]]; then
-    chmod 640 "$PUBLIC/wp-config.php"
-  fi
+1. Save the script as `set-permissions.sh` in any directory in your `$PATH` (or your home directory).
+2. Make it executable:
+   ```bash
+   chmod +x set-permissions.sh
+   ```
 
-  ok "[$domain] Permissions applied."
+---
 
-  # Summary tree (depth = $TREE_DEPTH)
-  echo
-  echo "📁 [$domain] Summary (depth=$TREE_DEPTH) under: $ROOT"
-  (
-    cd "$ROOT"
-    for top in */; do
-      echo ""
-      echo "🔹 ${top%/}/"
-      find "$top" -maxdepth "$TREE_DEPTH" -print0 | while IFS= read -r -d '' item; do
-        perms=$(stat -c '%a' "$item")
-        owner=$(stat -c '%U' "$item")
-        group=$(stat -c '%G' "$item")
-        relpath="${item#./}"
-        indent=$(echo "$relpath" | sed -e 's|[^/][^/]*/|│   |g' -e 's|│   \([^│]*\)$|└── \1|')
-        printf "%s [%s %s:%s]\n" "$indent" "$perms" "$owner" "$group"
-      done
-    done
-  )
-  echo
+## ▶️ Run
 
-  # Quick write test as PHP-FPM user/group
-  if sudo -u "$GROUP" bash -lc "touch '$WPC/test-write' 2>/dev/null"; then
-    rm -f "$WPC/test-write"
-    ok "[$domain] Write test as $GROUP: OK"
-  else
-    warn "[$domain] Write test as $GROUP failed. Check PHP-FPM pool user/group."
-  fi
-}
+```bash
+./set-permissions.sh
+```
 
-# --- Discovery loop (one site at a time) ---
-while true; do
-  # Discover candidate sites: /sites/<domain>/public/wp-content
-  mapfile -t DOMAINS < <(
-    find "$SITES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
-    | while read -r d; do
-        [[ -d "$d/public/wp-content" ]] && basename "$d"
-      done \
-    | sort
-  )
+You’ll see a numbered list of detected WordPress sites (based on `/sites/<domain>/public/wp-content`). Pick one to fix. After it completes, choose to **fix another** or **quit**.
 
-  if [[ ${#DOMAINS[@]} -eq 0 ]]; then
-    err "No WordPress sites found under $SITES_DIR (expected /sites/<domain>/public/wp-content)."
-    exit 1
-  fi
+---
 
-  echo
-  echo "Detected WordPress sites in $SITES_DIR:"
-  for i in "${!DOMAINS[@]}"; do
-    printf "  [%d] %s\n" "$((i+1))" "${DOMAINS[$i]}"
-  done
-  echo "  [q] Quit"
-  echo
+## 🧪 Post-run checks (optional but useful)
 
-  read -r -p "Select a site to fix (number), or 'q' to exit: " choice
-  if [[ "$choice" == "q" || "$choice" == "Q" ]]; then
-    echo "Bye."
-    exit 0
-  fi
+- **Direct write test as PHP-FPM group**:
+  ```bash
+  DOMAIN=example.com
+  WPC=/sites/$DOMAIN/public/wp-content
+  sudo -u www-data bash -lc "touch '$WPC/test-write' && rm '$WPC/test-write' && echo OK" || echo FAIL
+  ```
+- **Force direct FS method in WordPress** (if you still see FTP prompts), add to `wp-config.php` above the “stop editing” line:
+  ```php
+  define('FS_METHOD', 'direct');
+  define('FS_CHMOD_DIR', 02775);
+  define('FS_CHMOD_FILE', 0664);
+  ```
+  Remove any `define('FTP_…')` lines if present.
 
-  # Validate numeric choice
-  if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-    warn "Invalid input. Please enter a number from the list."
-    continue
-  fi
-  idx=$((choice-1))
-  if (( idx < 0 || idx >= ${#DOMAINS[@]} )); then
-    warn "Out of range. Try again."
-    continue
-  fi
+---
 
-  domain="${DOMAINS[$idx]}"
-  echo
-  read -r -p "Proceed to fix permissions for '$domain'? [y/N]: " yn
-  if [[ ! "$yn" =~ ^[Yy]$ ]]; then
-    echo "Skipped '$domain'."
-  else
-    apply_perms "$domain" || warn "Failed to apply perms for $domain."
-  fi
+## 🧰 How it works (in brief)
 
-  echo
-  read -r -p "Fix another site? [y/N]: " again
-  [[ "$again" =~ ^[Yy]$ ]] || { echo "Done."; exit 0; }
-done
+1. Recursively sets **owner:group** to `your-user:www-data` for the chosen site.
+2. Applies **750/640** outside `wp-content` (tight by default).
+3. Applies **2775/664** inside `wp-content` and ensures `uploads`, `cache`, `upgrade`, `wflogs` exist.
+4. Applies **g+s** on `wp-content` to maintain group inheritance.
+5. If `setfacl` exists, applies **default ACLs** so new files stay group-writable.
+6. Hardens `wp-config.php` to `640`.
+7. Prints a **permissions summary tree** (depth 1) for quick verification.
+8. Offers to process another site or exit.
+
+---
+
+## 🐛 Troubleshooting
+
+- **Still asks for FTP creds**
+  - Confirm `wp-content` is **group-writable** (`664` files / `2775` dirs) and owned by `:www-data`.
+  - Ensure PHP-FPM pool runs as **`www-data`** (or align the script’s `GROUP` with your pool group).
+  - Add `FS_METHOD` constants shown above.
+- **Your user not writing smoothly**
+  - Add your user to `www-data` group and re-login or run `newgrp www-data`.
+
+---
+
+## 🧹 Reverting (if needed)
+
+To revert to stricter, read-only mode for `wp-content`, you can run:
+```bash
+DOMAIN=example.com
+ROOT=/sites/$DOMAIN
+PUBLIC=$ROOT/public
+WPC=$PUBLIC/wp-content
+
+sudo chown -R "$(whoami):www-data" "$ROOT"
+find "$PUBLIC" -path "$WPC" -prune -o -type d -exec chmod 750 {} +
+find "$PUBLIC" -path "$WPC" -prune -o -type f -exec chmod 640 {} +
+find "$WPC" -type d -exec chmod 750 {} +
+find "$WPC" -type f -exec chmod 640 {} +
+```
+
+> Note: Reverting will likely bring back the FTP prompt during updates.
+
+---
+
+## 📄 License
+
+Use and modify freely within your environment.
+
