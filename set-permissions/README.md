@@ -46,10 +46,10 @@ An interactive utility to **discover WordPress sites** under `/sites`, **fix fil
 
 ## 📦 Install
 
-1. Save the script as `fix-wp-perms-interactive.sh` in any directory in your `$PATH` (or your home directory).
+1. Save the script as `set-permissions.sh` in any directory in your `$PATH` (or your home directory).
 2. Make it executable:
    ```bash
-   chmod +x fix-wp-perms-interactive.sh
+   chmod +x set-permissions.sh
    ```
 
 ---
@@ -57,7 +57,7 @@ An interactive utility to **discover WordPress sites** under `/sites`, **fix fil
 ## ▶️ Run
 
 ```bash
-./fix-wp-perms-interactive.sh
+./set-permissions.sh
 ```
 
 You’ll see a numbered list of detected WordPress sites (based on `/sites/<domain>/public/wp-content`). Pick one to fix. After it completes, choose to **fix another** or **quit**.
