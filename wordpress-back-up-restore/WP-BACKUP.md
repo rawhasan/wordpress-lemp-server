@@ -91,7 +91,11 @@ Temporary working directory is deleted after the archive is created.
 
 
 
----
+```
+
+
+
+```
 ## 🧪 Testing the Backup Archive
 
 After creating a backup, verify that the archive is readable and contains valid `wp-content` and database backups before relying on it.
