@@ -35,11 +35,20 @@ The script will automatically derive:
 
 ## 🚀 How to Use
 
-1. Open the script and edit the `SITE_NAME` variable with your domain.
-2. Run the script:
+1.Save the file as `/sites/scripts/backup.sh`
+2. Open the script and edit the `SITE_NAME` variable with your domain.
+3. Run the script:
+
+**Make the file executable once:**
 
 ```bash
-bash wp-backup.sh
+chmod +x backup.sh
+```
+
+**Run the script:**
+
+```bash
+sudo ./backup.sh
 ```
 
 3. The backup archive will be saved to:
