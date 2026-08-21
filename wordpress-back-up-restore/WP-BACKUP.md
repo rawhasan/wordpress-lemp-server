@@ -35,7 +35,7 @@ The script will automatically derive:
 
 ## 🚀 How to Use
 
-1.Save the file as `/sites/scripts/backup.sh`
+1. Save the file as `/sites/scripts/backup.sh`
 2. Open the script and edit the `SITE_NAME` variable with your domain.
 3. Run the script:
 
