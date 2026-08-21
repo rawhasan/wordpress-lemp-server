@@ -302,3 +302,17 @@ A backup should only be considered usable when:
 
 
 
+
+
+
+
+```
+
+
+
+```
+## 🧪 Downloading the Backup Archive
+
+```bash
+scp user@YOUR_SERVER_IP:/sites/dev.nijhoom.com/backups/* .
+```
