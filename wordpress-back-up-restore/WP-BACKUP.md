@@ -46,42 +46,52 @@ Check disk space before a large backup:
 df -h /sites
 ```
 
-## 4. Install the script
 
-Copy `wp-backup.sh` into the `shells` directory of one site:
+## 4. Install the Script
+
+Create the scripts directory and enter it:
 
 ```bash
 sudo mkdir -p /sites/nijhoom.com/shells
-sudo install -m 700 wp-backup.sh /sites/nijhoom.com/shells/wp-backup.sh
+cd /sites/nijhoom.com/shells
 ```
 
-The `install` command assumes `wp-backup.sh` is in your current working directory. Otherwise substitute its actual source path.
-
-Check Bash syntax:
+Create the script:
 
 ```bash
-sudo bash -n /sites/nijhoom.com/shells/wp-backup.sh
+sudo nano wp-backup.sh
 ```
 
-Create or update a global command:
+Paste the complete script from GitHub. Press `Ctrl+O`, `Enter`, then `Ctrl+X` to save and exit.
+
+Set permissions and check for syntax errors:
 
 ```bash
-sudo ln -sfn /sites/nijhoom.com/shells/wp-backup.sh /usr/local/bin/wp-backup
+sudo chmod 700 wp-backup.sh
+sudo bash -n wp-backup.sh
 ```
 
-Verify the link:
+Create a global command:
 
 ```bash
-readlink -f /usr/local/bin/wp-backup
+sudo ln -sfn "$(pwd)/wp-backup.sh" /usr/local/bin/wp-backup
 ```
 
-Expected output:
+Run the script from anywhere:
 
-```text
-/sites/nijhoom.com/shells/wp-backup.sh
+```bash
+sudo wp-backup
 ```
 
-If `/usr/local/bin/wp-backup` is an existing regular file rather than a symbolic link, inspect it before replacing it.
+The script displays a menu of detected WordPress sites.
+
+To back up a specific site without the menu:
+
+```bash
+sudo wp-backup nijhoom.com
+```
+
+**Note:** Replace `nijhoom.com` in the installation path with any site directory under `/sites/`. The global command works for all detected WordPress sites.
 
 ## 5. Run a manual backup
 
