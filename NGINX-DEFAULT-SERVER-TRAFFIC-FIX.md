@@ -199,3 +199,105 @@ The configuration file remains available under `sites-available` for troubleshoo
 ## Example of a verified result
 
 In one Ubuntu/Nginx deployment, unmatched hostnames initially returned HTTP `301` over both HTTP and HTTPS. After adding the TCP catch-all blocks above, the tests returned `000` with a connection-reset message for both unknown hostnames, while the legitimate site returned `200`. This confirms the **TCP HTTP/HTTPS** default-host issue was corrected; HTTP/3 remained a separate verification item.
+
+
+
+
+
+# Fix Nginx Default-Server Traffic
+
+Use these four steps to reject requests sent to unknown hostnames or directly to the server IP, without changing the configured website virtual hosts.
+
+**Before starting:** Replace `example.com` in Step 1 with a domain that already has a valid certificate on this server. These commands assume Debian/Ubuntu-style `/etc/nginx/sites-available/` and `/etc/nginx/sites-enabled/` directories and that no other server block already declares `default_server` for the same addresses and ports. The existing website must already work over HTTPS.
+
+## Step 1 — Create a dedicated default server
+
+```bash
+sudo tee /etc/nginx/sites-available/00-default-reject >/dev/null <<'EOFNGINX'
+# Reject requests that do not match a configured website.
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name _;
+
+    return 444;
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+
+    server_name _;
+
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    return 444;
+}
+EOFNGINX
+```
+
+Nginx needs a certificate for the default HTTPS listener. `444` is an Nginx-specific response that closes the connection without an HTTP response. If the server uses different certificate paths, replace both paths accordingly.
+
+## Step 2 — Enable the default server
+
+```bash
+sudo ln -s \
+  /etc/nginx/sites-available/00-default-reject \
+  /etc/nginx/sites-enabled/00-default-reject
+```
+
+## Step 3 — Validate and reload
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+If validation fails, Nginx will **not** reload. Review the error before proceeding. A common cause is an existing `default_server` declaration on the same listener.
+
+## Step 4 — Verify rejection and legitimate website access
+
+Replace `example.com` below with your real website domain.
+
+```bash
+echo "===== UNKNOWN HTTP HOST ====="
+
+curl -sS \
+  --resolve invalid-host.example:80:127.0.0.1 \
+  -o /dev/null \
+  -w 'HTTP %{http_code}\n' \
+  http://invalid-host.example/
+
+echo
+echo "===== UNKNOWN HTTPS HOST ====="
+
+curl -ksS \
+  --resolve invalid-host.example:443:127.0.0.1 \
+  -o /dev/null \
+  -w 'HTTPS %{http_code}\n' \
+  https://invalid-host.example/
+
+echo
+echo "===== LEGITIMATE WEBSITE ====="
+
+curl -ksS \
+  --resolve example.com:443:127.0.0.1 \
+  -o /dev/null \
+  -w 'Website HTTP %{http_code}\n' \
+  https://example.com/
+```
+
+Expected output for the configuration tested:
+
+```text
+HTTP 000
+HTTPS 000
+Website HTTP 200
+```
+
+The first two requests may print `curl: (56) Recv failure: Connection reset by peer` or `Empty reply from server`; this is expected with `return 444`. The legitimate website should return its normal success or expected redirect status (often `200` or `301`), not `000`.
+
+**Scope:** These steps cover TCP HTTP (80) and HTTPS (443). If Nginx also listens on UDP 443 for HTTP/3 (QUIC), verify its default handling separately.
+
