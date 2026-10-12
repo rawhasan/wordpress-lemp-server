@@ -1,125 +1,95 @@
-# Fix Unwanted Default-Server Traffic in Nginx (LEMP)
+# Fix Nginx Default-Server Traffic (HTTP, HTTPS, and HTTP/3)
 
-A reusable guide for Ubuntu servers running Nginx, PHP-FPM, and WordPress or other web applications.
+Use these **four copy-and-paste steps** on an Ubuntu/Debian Nginx server to reject requests addressed to unknown hostnames or the server IP, while keeping configured websites working. The Nginx-specific `444` response closes the connection without sending an HTTP response.
 
-## The problem
+**Before starting:** Run these commands **on the server** as a sudo-enabled user. The server must already have a working HTTPS website and certificate. These steps assume `/etc/nginx/sites-available/` and `/etc/nginx/sites-enabled/` exist, IPv4/IPv6 listeners are in use, and no other enabled server declares `default_server` on the same ports. **Replace `example.com` once in Step 1.** HTTP/3 directives are added only when existing Nginx configuration already enables QUIC. This is not a firewall or a replacement for a WAF.
 
-When Nginx has no explicit `default_server` for a listening address and port, it uses the **first server block** for that address and port as the default. Requests for unknown hostnames or direct IP addresses may therefore be processed by a real website's virtual host. Depending on its rules, the response may be a redirect, a website page, or an application response.
+## Step 1 — Back up and create the default server
 
-The objective is to reject unmatched hostnames **before they are passed to a production application's server block**, while preserving valid domain traffic.
-
-> **Scope:** The configuration below covers TCP HTTP (port 80) and TLS HTTPS (port 443), including HTTP/1.1 and HTTP/2. **HTTP/3/QUIC uses UDP 443 and requires a separate check.** The fix does not stop requests addressed to your legitimate domain, and it is not a replacement for a firewall, CDN/WAF, or application security.
-
-## Prerequisites
-
-- Ubuntu with Nginx installed and a working production website.
-- A sudo-enabled administrator account.
-- A working certificate and key readable by Nginx (for the TLS catch-all block).
-- Shell access to the server.
-
-In this guide, replace `example.com` with your actual domain. Paths and listening directives must match your own Nginx installation.
-
-## 1. Diagnose the default virtual hosts
+**What it does:** Saves the current reject configuration if present, checks the existing TLS certificate, detects whether HTTP/3 is enabled, and creates a fallback virtual host that rejects unknown requests on HTTP and HTTPS, plus HTTP/3 when already in use.
 
 ```bash
-sudo nginx -t
-sudo nginx -T 2>/dev/null | grep -nE 'listen .*default_server|listen .*443|listen .*80|server_name'
-ls -la /etc/nginx/sites-enabled/
-```
+# CHANGE THIS DOMAIN to one with a working Let's Encrypt certificate.
+DOMAIN="example.com"
 
-Look for `default_server` on both `80` and `443 ssl`, for IPv4 and IPv6 if enabled. No explicit default usually means a normal site is acting as the fallback.
+CONF="/etc/nginx/sites-available/00-default-reject"
+CERT="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+KEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-Test unmatched hostnames against **local Nginx** to avoid DNS/CDN interference:
+# Stop rather than create an invalid HTTPS listener.
+if ! sudo test -r "$CERT" || ! sudo test -r "$KEY"; then
+  echo "ERROR: Certificate/key missing or unreadable: $CERT / $KEY"
+else
+  # Back up any existing reject file before replacing it.
+  if sudo test -e "$CONF"; then
+    sudo cp -a "$CONF" "${CONF}.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
 
-```bash
-curl --noproxy '*' -sS \
-  --resolve invalid-host.example:80:127.0.0.1 \
-  -o /dev/null -w 'HTTP %{http_code}\n' \
-  http://invalid-host.example/
+  # Include QUIC only when an existing Nginx site already uses it.
+  QUIC_LISTEN=""
+  if sudo nginx -T 2>/dev/null | grep -Eq '^[[:space:]]*listen[[:space:]]+[^;]*[[:space:]]quic([[:space:];]|$)'; then
+    QUIC_LISTEN='    listen 443 quic default_server;
+    listen [::]:443 quic default_server;'
+  fi
 
-curl --noproxy '*' -ksS \
-  --resolve invalid-host.example:443:127.0.0.1 \
-  -o /dev/null -w 'HTTPS %{http_code}\n' \
-  https://invalid-host.example/
-```
-
-A `200`, `301`, or `302` is evidence that an unmatched hostname is being handled by some virtual host rather than rejected. This **does not by itself prove** that PHP or WordPress executed.
-
-## 2. Back up the current Nginx configuration
-
-```bash
-sudo mkdir -p /root/nginx-config-backups
-sudo tar -czf "/root/nginx-config-backups/nginx-before-default-reject-$(date +%Y%m%d-%H%M%S).tar.gz" -C /etc nginx
-```
-
-Keep the backup private: it can include sensitive certificate references or configuration values.
-
-## 3. Confirm the existing certificate paths
-
-Find the certificate paths already used by a working HTTPS site:
-
-```bash
-sudo nginx -T 2>/dev/null | grep -E '^[[:space:]]*ssl_certificate(_key)?[[:space:]]'
-```
-
-Choose a working `ssl_certificate` / `ssl_certificate_key` pair. **Do not copy the example paths blindly.** The default HTTPS server needs a certificate to complete or reject TLS connections under this `ssl` configuration; the certificate does not need to match an unknown hostname because those requests will be rejected.
-
-## 4. Create a dedicated catch-all server
-
-Create a separate configuration file:
-
-```bash
-sudo nano /etc/nginx/sites-available/00-default-reject
-```
-
-Paste the following, **replacing the two certificate paths** with your verified paths:
-
-```nginx
-# Reject HTTP requests that do not match a configured virtual host.
+  sudo tee "$CONF" >/dev/null <<EOF
+# Reject requests for unknown hostnames and direct IP traffic.
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-
     server_name _;
     return 444;
 }
 
-# Reject HTTPS requests that do not match a configured virtual host.
 server {
     listen 443 ssl default_server;
     listen [::]:443 ssl default_server;
-
+$QUIC_LISTEN
     server_name _;
-
-    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-
+    ssl_certificate $CERT;
+    ssl_certificate_key $KEY;
     return 444;
 }
+EOF
+  echo "Created $CONF"
+fi
 ```
 
-**Important details:**
+**Note:** If your certificate is not managed by Let's Encrypt, change `CERT` and `KEY` to the actual paths before running. If your server does not use IPv6, remove the `[::]` `listen` lines. If it listens on specific IP addresses, adapt the `listen` directives accordingly.
 
-- `default_server` on `listen` selects the fallback virtual host. `server_name _;` is just a conventional placeholder, **not** a wildcard mechanism.
-- Nginx `444` closes the connection without sending an HTTP response. Curl usually reports `HTTP 000` and a connection-reset/empty-reply error.
-- If your Nginx uses other listen addresses (specific IPs, IPv6 disabled, nonstandard ports), adapt the blocks to those address/port combinations.
-- If another enabled server already uses `default_server` on the same address and port, remove or reconcile that conflicting declaration **before enabling this file**. Duplicate defaults cause `nginx -t` to fail.
-- If your existing TLS server uses special SSL settings or includes, review compatibility rather than changing the production virtual host blindly.
+## Step 2 — Enable the default server
 
-## 5. Enable, validate, and reload
+**What it does:** Activates the catch-all configuration without editing any existing website's server block.
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/00-default-reject \
+sudo ln -sfn \
+  /etc/nginx/sites-available/00-default-reject \
   /etc/nginx/sites-enabled/00-default-reject
+```
 
+## Step 3 — Validate and reload Nginx
+
+**What it does:** Checks for syntax errors or conflicting `default_server` declarations; reloads only when the configuration is valid.
+
+```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-**Do not reload** if `nginx -t` reports an error. Correct the error or roll back the new symlink first.
-
-## 6. Verify both rejection and normal website traffic
+If validation fails, **do not reload**. Check the error. To disable the new catch-all and return to the previously loaded configuration:
 
 ```bash
+sudo rm -f /etc/nginx/sites-enabled/00-default-reject
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+## Step 4 — Verify rejection and legitimate website traffic
+
+**What it does:** Confirms that unknown hostnames are rejected, the legitimate website still responds, and QUIC has a default listener when HTTP/3 is enabled.
+
+```bash
+# CHANGE THIS DOMAIN to the same domain used in Step 1.
+DOMAIN="example.com"
+
 echo '===== UNKNOWN HTTP HOST ====='
 curl --noproxy '*' -sS \
   --resolve invalid-host.example:80:127.0.0.1 \
@@ -132,172 +102,27 @@ curl --noproxy '*' -ksS \
   -o /dev/null -w 'HTTPS %{http_code}\n' \
   https://invalid-host.example/
 
-echo '===== REAL WEBSITE DIRECTLY AT ORIGIN ====='
+echo '===== LEGITIMATE WEBSITE ====='
 curl --noproxy '*' -ksS \
-  --resolve example.com:443:127.0.0.1 \
+  --resolve "$DOMAIN:443:127.0.0.1" \
   -o /dev/null -w 'Website HTTP %{http_code}\n' \
-  https://example.com/
+  "https://$DOMAIN/"
+
+echo '===== DEFAULT HTTPS / QUIC LISTENERS ====='
+sudo nginx -T 2>/dev/null | grep -E \
+  'listen .*443.*default_server|listen .*443.*quic'
 ```
 
-Expected for the unknown hostnames: `HTTP 000` / `HTTPS 000` with a curl connection-reset or empty-reply message. Expected for the legitimate site: its **normal** response, often `200` (or an intentional redirect). Also check `www.example.com` if it is configured, and verify the public website through your CDN if applicable.
+**Expected:** Unknown HTTP and HTTPS requests produce `000`, usually accompanied by `curl: (56) Recv failure: Connection reset by peer` or `Empty reply from server`. The real website returns its normal response, commonly `200` or `301`. On HTTP/3-enabled servers, the output should include `listen 443 quic default_server;` and `listen [::]:443 quic default_server;`.
 
-For additional assurance, test direct-IP requests from an external machine and verify they do not serve your website. If IPv6 is enabled, test IPv6 separately.
-
-## 7. HTTP/3 / QUIC: check separately
-
-If your site configuration contains `listen 443 quic;` or `listen [::]:443 quic;`, it accepts HTTP/3 on **UDP** port 443. The TCP catch-all above does **not** establish how unknown hostnames are handled over QUIC.
-
-Check whether your curl supports HTTP/3:
-
-```bash
-curl -V
-```
-
-If it lists `HTTP3`, test:
+**HTTP/3 verification:** The configuration check confirms the default QUIC listener exists, **not** that its rejection behavior has been tested. If `curl -V` lists `HTTP3`, test with an HTTP/3-capable curl:
 
 ```bash
 curl --noproxy '*' --http3-only -ksS \
   --resolve invalid-host.example:443:127.0.0.1 \
-  --max-time 10 \
-  -o /dev/null -w 'HTTP/3 %{http_code}\n' \
+  --max-time 10 -o /dev/null \
+  -w 'Unknown HTTP/3 host: %{http_code}\n' \
   https://invalid-host.example/
 ```
 
-If HTTP/3 is not supported, use an HTTP/3-capable client or inspect the actual QUIC listener configuration. **Do not add a `listen 443 quic default_server;` directive without checking your Nginx version, QUIC/TLS settings, and current listeners**; validate any changes with `nginx -t` and retest the live site. You can also decide to disable QUIC only after reviewing the impact on your website.
-
-## 8. Roll back safely
-
-If valid requests fail or Nginx reports a configuration problem:
-
-```bash
-sudo rm -f /etc/nginx/sites-enabled/00-default-reject
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-The configuration file remains available under `sites-available` for troubleshooting. The full `/etc/nginx` backup from Step 2 is a further recovery option if other files were changed.
-
-## 9. Understand what this does not fix
-
-- **Bot probes using the real domain** still reach the website's virtual host and need appropriate WAF, rate limits, access rules, or application security.
-- An access log showing requests for `/.env`, `/.git`, or `/wp-login.php` does not prove default-host routing; the normal log format may not include the HTTP `Host` header.
-- If Nginx is behind Cloudflare or another proxy, the edge may accept or rewrite hostnames before traffic reaches the origin. Test both **origin behavior** and **edge behavior** when relevant.
-- A TLS handshake can happen before Nginx processes the HTTP request. A `444` response is an HTTP-level rejection, not necessarily a pre-handshake TLS rejection.
-
-## Verification checklist
-
-- [ ] Nginx syntax test passes.
-- [ ] One explicit default HTTP server exists for each relevant listen address.
-- [ ] One explicit default HTTPS server exists for each relevant listen address.
-- [ ] Unknown HTTP hostname is rejected.
-- [ ] Unknown HTTPS hostname is rejected.
-- [ ] Direct-IP requests do not expose the site.
-- [ ] Legitimate apex and `www` domains still work.
-- [ ] CDN/proxy requests still work, if applicable.
-- [ ] HTTP/3/QUIC has been checked separately if enabled.
-- [ ] Rollback instructions and original configuration backup are retained.
-
-## Example of a verified result
-
-In one Ubuntu/Nginx deployment, unmatched hostnames initially returned HTTP `301` over both HTTP and HTTPS. After adding the TCP catch-all blocks above, the tests returned `000` with a connection-reset message for both unknown hostnames, while the legitimate site returned `200`. This confirms the **TCP HTTP/HTTPS** default-host issue was corrected; HTTP/3 remained a separate verification item.
-
-
-
-
-
-# Fix Nginx Default-Server Traffic
-
-Use these four steps to reject requests sent to unknown hostnames or directly to the server IP, without changing the configured website virtual hosts.
-
-**Before starting:** Replace `example.com` in Step 1 with a domain that already has a valid certificate on this server. These commands assume Debian/Ubuntu-style `/etc/nginx/sites-available/` and `/etc/nginx/sites-enabled/` directories and that no other server block already declares `default_server` for the same addresses and ports. The existing website must already work over HTTPS.
-
-## Step 1 — Create a dedicated default server
-
-```bash
-sudo tee /etc/nginx/sites-available/00-default-reject >/dev/null <<'EOFNGINX'
-# Reject requests that do not match a configured website.
-
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    server_name _;
-
-    return 444;
-}
-
-server {
-    listen 443 ssl default_server;
-    listen [::]:443 ssl default_server;
-
-    server_name _;
-
-    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-
-    return 444;
-}
-EOFNGINX
-```
-
-Nginx needs a certificate for the default HTTPS listener. `444` is an Nginx-specific response that closes the connection without an HTTP response. If the server uses different certificate paths, replace both paths accordingly.
-
-## Step 2 — Enable the default server
-
-```bash
-sudo ln -s \
-  /etc/nginx/sites-available/00-default-reject \
-  /etc/nginx/sites-enabled/00-default-reject
-```
-
-## Step 3 — Validate and reload
-
-```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-If validation fails, Nginx will **not** reload. Review the error before proceeding. A common cause is an existing `default_server` declaration on the same listener.
-
-## Step 4 — Verify rejection and legitimate website access
-
-Replace `example.com` below with your real website domain.
-
-```bash
-echo "===== UNKNOWN HTTP HOST ====="
-
-curl -sS \
-  --resolve invalid-host.example:80:127.0.0.1 \
-  -o /dev/null \
-  -w 'HTTP %{http_code}\n' \
-  http://invalid-host.example/
-
-echo
-echo "===== UNKNOWN HTTPS HOST ====="
-
-curl -ksS \
-  --resolve invalid-host.example:443:127.0.0.1 \
-  -o /dev/null \
-  -w 'HTTPS %{http_code}\n' \
-  https://invalid-host.example/
-
-echo
-echo "===== LEGITIMATE WEBSITE ====="
-
-curl -ksS \
-  --resolve example.com:443:127.0.0.1 \
-  -o /dev/null \
-  -w 'Website HTTP %{http_code}\n' \
-  https://example.com/
-```
-
-Expected output for the configuration tested:
-
-```text
-HTTP 000
-HTTPS 000
-Website HTTP 200
-```
-
-The first two requests may print `curl: (56) Recv failure: Connection reset by peer` or `Empty reply from server`; this is expected with `return 444`. The legitimate website should return its normal success or expected redirect status (often `200` or `301`), not `000`.
-
-**Scope:** These steps cover TCP HTTP (80) and HTTPS (443). If Nginx also listens on UDP 443 for HTTP/3 (QUIC), verify its default handling separately.
-
+If curl lacks `HTTP3`, skip that command and use another HTTP/3-capable client later. Also test your real domain over HTTP/3. **Requests that use your legitimate hostname still reach its website virtual host**, even if they are malicious; this fix only handles unmatched hostnames.
