@@ -248,13 +248,35 @@ CHECKSUM_NAME="$(basename "$CHECKSUM")"
 printf '\n%s\n' '===== DOWNLOAD TO WINDOWS (GIT BASH) ====='
 printf 'Detected SSH user: %s\n' "$SSH_USER"
 printf 'Detected server address: %s\n' "$SSH_HOST"
+
 if [[ "$SSH_HOST" =~ ^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|127\.) ]]; then
-  printf '%s\n' 'NOTE: Detected a private IP. For access over the internet, set BACKUP_SSH_HOST to the public IP or DNS name.'
+  printf '%s\n' 'NOTE: Detected a private IP. Set BACKUP_SSH_HOST to your public IP or DNS name for internet access.'
 fi
-printf '%s\n' 'Open Git Bash on your Windows PC (not this SSH terminal).'
-printf '%s\n' 'Navigate to your desired local download directory, then run:'
+
+printf '\n%s\n' 'Open Git Bash on your Windows PC (not this SSH terminal).'
+printf '%s\n' 'Navigate to your desired local download directory.'
+
+printf '\n%s\n' '===== OPTION 1: SCP DOWNLOAD ====='
 printf '\n  scp %s@%s:%q .\n' "$SSH_USER" "$SSH_HOST" "$FINAL"
 printf '  scp %s@%s:%q .\n' "$SSH_USER" "$SSH_HOST" "$CHECKSUM"
-printf '\n%s\n' 'After both files download, verify in Git Bash:'
+
+printf '\n%s\n' '===== OPTION 2: SFTP DOWNLOAD (RESUMABLE) ====='
+printf '%s\n' 'Connect using:'
+printf '\n  sftp %s@%s\n' "$SSH_USER" "$SSH_HOST"
+
+printf '\n%s\n' 'At the sftp> prompt, enter:'
+printf '  get -a %s\n' "$FINAL"
+printf '  get %s\n' "$CHECKSUM"
+printf '  bye\n'
+
+printf '\n%s\n' 'If interrupted, reconnect and repeat get -a to resume the archive download.'
+
+printf '\n%s\n' '===== VERIFY DOWNLOADED BACKUP ====='
+printf '%s\n' 'After downloading both files, run in Git Bash:'
+printf '\n  sha256sum -c %q\n' "$CHECKSUM_NAME"
+printf '  tar -tzf %q > /dev/null && echo "BACKUP ARCHIVE OK"\n' "$ARCHIVE_NAME"
+
+printf '\n%s\n' 'Expected: checksum OK and BACKUP ARCHIVE OK.'
+printf '%s\n' 'Keep a verified copy outside the server.'
 printf '  sha256sum -c %q\n' "$CHECKSUM_NAME"
 printf '\n%s\n' 'Expected: OK. Keep a copy outside the server.'
